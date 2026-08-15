@@ -146,40 +146,42 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
   ]
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#0A0F1E', fontFamily:'Inter,sans-serif' }}>
+    <div className="app-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#0A0F1E', fontFamily:'Plus Jakarta Sans, sans-serif' }}>
       {/* Sidebar */}
-      <aside style={{ width:64, display:'flex', flexDirection:'column', alignItems:'center', padding:'16px 0', background:'#0D1526', borderRight:`1px solid #1A2540`, gap:4, flexShrink:0 }}>
+      <aside className="app-sidebar" style={{ width:64, display:'flex', flexDirection:'column', alignItems:'center', padding:'16px 0', background:'#0D1526', borderRight:`1px solid #1A2540`, gap:4, flexShrink:0 }}>
         {/* Logo */}
-        <div style={{ width:36, height:36, borderRadius:10, background:`linear-gradient(135deg,${brand},${cyber})`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:20, boxShadow:`0 0 20px ${brand}60` }}>
+        <div style={{ width:36, height:36, borderRadius:10, background:`linear-gradient(135deg,${brand},${cyber})`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12, boxShadow:`0 0 20px ${brand}60`, flexShrink:0 }}>
           <span style={{ color:'#fff', fontSize:15, fontWeight:900 }}>S</span>
         </div>
-        {navItems.map(n => (
-          <button key={n.id} onClick={()=>setView(n.id)} title={n.label} style={{ width:44, height:44, borderRadius:12, border:'none', background: view===n.id ? `${brand}22` : 'transparent', color: view===n.id ? cyber : '#475569', fontSize:18, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2, transition:'all .15s', outline: view===n.id ? `1.5px solid ${brand}44` : 'none' }}>
-            <span>{n.icon}</span>
-            <span style={{ fontSize:8, fontWeight:600, letterSpacing:'.04em', textTransform:'uppercase' }}>{n.label.slice(0,4)}</span>
-          </button>
-        ))}
+        <div className="app-sidebar-nav" style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+          {navItems.map(n => (
+            <button key={n.id} onClick={()=>setView(n.id)} title={n.label} style={{ width:44, height:44, borderRadius:12, border:'none', background: view===n.id ? `${brand}22` : 'transparent', color: view===n.id ? cyber : '#475569', fontSize:18, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2, transition:'all .15s', outline: view===n.id ? `1.5px solid ${brand}44` : 'none' }}>
+              <span>{n.icon}</span>
+              <span style={{ fontSize:8, fontWeight:600, letterSpacing:'.04em', textTransform:'uppercase' }}>{n.label.slice(0,4)}</span>
+            </button>
+          ))}
+        </div>
         <div style={{ flex:1 }} />
-        <div style={{ width:32, height:32, borderRadius:'50%', background:'#1E3A5F', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:8 }} title={userEmail || 'Admin SGF'}>
+        <div style={{ width:32, height:32, borderRadius:'50%', background:'#1E3A5F', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:4 }} title={userEmail || 'Admin SGF'}>
           <span style={{ color:cyber, fontSize:11, fontWeight:700 }}>ADM</span>
         </div>
       </aside>
 
       {/* Main */}
-      <div style={{ flex:1, overflow:'hidden', display:'flex', flexDirection:'column' }}>
+      <div style={{ flex:1, overflow:'hidden', display:'flex', flexDirection:'column', minWidth: 0 }}>
         {/* Top bar */}
-        <header style={{ height:52, background:'#0D1526', borderBottom:`1px solid #1A2540`, display:'flex', alignItems:'center', padding:'0 24px', gap:12, flexShrink:0 }}>
-          <div>
-            <span style={{ color:'#fff', fontSize:14, fontWeight:600 }}>C.C. Hiper Jumbo</span>
+        <header className="top-header" style={{ height:52, background:'#0D1526', borderBottom:`1px solid #1A2540`, display:'flex', alignItems:'center', padding:'0 20px', gap:12, flexShrink:0 }}>
+          <div style={{ minWidth: 0 }}>
+            <span style={{ color:'#fff', fontSize:14, fontWeight:700 }}>C.C. Hiper Jumbo</span>
             <span style={{ color:'#1E3A5F', margin:'0 8px' }}>·</span>
-            <span style={{ color:'#475569', fontSize:13 }}>Panel Administrativo SGF</span>
+            <span style={{ color:'#64748B', fontSize:12 }}>Panel Administrativo SGF</span>
           </div>
           <div style={{ flex:1 }} />
           
           {/* Indicador Supabase */}
           <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(16, 185, 129, 0.1)', border:'1px solid rgba(16, 185, 129, 0.25)', borderRadius:20, padding:'4px 12px' }}>
             <span style={{ width:7, height:7, borderRadius:'50%', background: green, display:'inline-block', boxShadow: `0 0 8px ${green}` }} />
-            <span style={{ color: green, fontSize:11, fontWeight:700 }}>⚡ Supabase DB {isSupabaseConnected ? 'Conectado' : 'Listo'}</span>
+            <span style={{ color: green, fontSize:11, fontWeight:700 }}>⚡ Supabase {isSupabaseConnected ? 'Conectado' : 'Listo'}</span>
           </div>
 
           <button
@@ -196,17 +198,18 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
               display: 'flex',
               alignItems: 'center',
               gap: 6,
-              boxShadow: `0 4px 14px ${brand}40`
+              boxShadow: `0 4px 14px ${brand}40`,
+              whiteSpace: 'nowrap'
             }}
           >
             <span>📝</span> Encuesta Pública
           </button>
 
           {userEmail && (
-            <div style={{ display:'flex', alignItems:'center', gap:8, background:'#111827', border:`1px solid #1F2937`, borderRadius:8, padding:'5px 12px' }}>
-              <span style={{ fontSize:11, color: cyber }}>👤 {userEmail}</span>
+            <div style={{ display:'flex', alignItems:'center', gap:8, background:'#111827', border:`1px solid #1F2937`, borderRadius:8, padding:'4px 10px', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize:11, color: cyber, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>👤 {userEmail}</span>
               {onLogout && (
-                <button onClick={onLogout} style={{ background:'none', border:'none', color:'#EF4444', fontSize:11, cursor:'pointer', fontWeight:700, marginLeft:4 }}>
+                <button onClick={onLogout} style={{ background:'none', border:'none', color:'#EF4444', fontSize:11, cursor:'pointer', fontWeight:700, marginLeft:2 }}>
                   Salir
                 </button>
               )}
@@ -293,7 +296,7 @@ function Dashboard({ surveys, totalLocals }: { surveys: SurveyResponse[]; totalL
       )}
 
       {/* KPI row */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:14, marginBottom:24 }}>
+      <div className="kpi-grid" style={{ marginBottom:24 }}>
         {kpis.map(k => (
           <div key={k.label} style={{ background:'#111827', border:`1px solid #1F2937`, borderRadius:16, padding:'18px 18px 16px', position:'relative', overflow:'hidden' }}>
             <div style={{ position:'absolute', top:0, left:0, right:0, height:2.5, background:`linear-gradient(90deg,${k.color},${k.color}00)`, borderRadius:'16px 16px 0 0' }} />
@@ -319,7 +322,7 @@ function Dashboard({ surveys, totalLocals }: { surveys: SurveyResponse[]; totalL
       </div>
 
       {/* Charts */}
-      <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr 1fr', gap:16 }}>
+      <div className="charts-grid">
         {/* Area chart: encuestas en el tiempo */}
         <DarkCard title="Progreso del Censo" sub="Locales encuestados en Supabase">
           <ResponsiveContainer width="100%" height={180}>
@@ -465,7 +468,7 @@ function CRM({ data }: { data?: typeof leads }) {
         </div>
 
         {/* Table */}
-        <div style={{ background:'#111827', border:`1px solid #1F2937`, borderRadius:16, overflow:'hidden' }}>
+        <div className="table-responsive" style={{ background:'#111827', border:`1px solid #1F2937`, borderRadius:16, overflowX:'auto' }}>
           <table style={{ width:'100%', borderCollapse:'collapse' }}>
             <thead>
               <tr style={{ borderBottom:`1px solid #1F2937` }}>
@@ -1213,7 +1216,7 @@ function SurveysView({ surveys, onRefresh }: { surveys: SurveyResponse[]; onRefr
           </a>
         </div>
       ) : (
-        <div style={{ background: '#111827', border: '1px solid #1F2937', borderRadius: 16, overflow: 'hidden' }}>
+        <div className="table-responsive" style={{ background: '#111827', border: '1px solid #1F2937', borderRadius: 16, overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #1F2937', background: '#0D1526' }}>
@@ -1258,53 +1261,132 @@ function SurveysView({ surveys, onRefresh }: { surveys: SurveyResponse[]; onRefr
 
       {/* Modal Detalles Encuesta */}
       {selectedSurvey && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 20 }}>
-          <div style={{ background: '#0D1526', border: '1px solid #1A2540', borderRadius: 20, maxWidth: 540, width: '100%', padding: 28, position: 'relative', color: '#F8FAFC' }}>
-            <button onClick={() => setSelectedSurvey(null)} style={{ position: 'absolute', top: 16, right: 16, background: '#1E293B', border: 'none', color: '#94A3B8', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: 14 }}>✕</button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: `linear-gradient(135deg, ${brand}, ${cyber})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                {selectedSurvey.local_id.slice(0, 2)}
+        <div className="modal-overlay animate-in" onClick={() => setSelectedSurvey(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setSelectedSurvey(null)}
+              style={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                color: '#94A3B8',
+                borderRadius: '50%',
+                width: 32,
+                height: 32,
+                cursor: 'pointer',
+                fontSize: 14,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              ✕
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20, paddingRight: 30 }}>
+              <div style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                background: `linear-gradient(135deg, ${brand}, ${cyber})`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 800,
+                fontSize: 16,
+                color: '#fff',
+                boxShadow: `0 0 20px ${brand}50`,
+                flexShrink: 0
+              }}>
+                {(selectedSurvey.local_id || 'LC').slice(0, 2)}
               </div>
-              <div>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>{selectedSurvey.nombre_local || selectedSurvey.local_id}</h3>
-                <p style={{ margin: 0, color: '#64748B', fontSize: 12 }}>Local: {selectedSurvey.local_id} · {selectedSurvey.zona}</p>
+              <div style={{ minWidth: 0 }}>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#F8FAFC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {selectedSurvey.nombre_local || selectedSurvey.local_id}
+                </h3>
+                <p style={{ margin: '2px 0 0', color: cyber, fontSize: 12, fontWeight: 600 }}>
+                  Local: <code>{selectedSurvey.local_id}</code> · {selectedSurvey.zona || 'Planta Baja'}
+                </p>
               </div>
             </div>
 
-            <div style={{ background: '#111827', borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20, border: '1px solid #1F2937' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                <span style={{ color: '#64748B' }}>Estatus Visita:</span>
-                <strong style={{ color: selectedSurvey.visit_result === 'Completada' ? green : amber }}>{selectedSurvey.visit_result}</strong>
+            <div style={{ background: '#111827', borderRadius: 16, padding: 18, display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20, border: '1px solid #1F2937' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
+                <span style={{ color: '#64748B', fontWeight: 500 }}>Estatus Visita</span>
+                <span style={{
+                  background: selectedSurvey.visit_result === 'Completada' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                  color: selectedSurvey.visit_result === 'Completada' ? green : amber,
+                  border: `1px solid ${selectedSurvey.visit_result === 'Completada' ? green : amber}40`,
+                  padding: '3px 12px',
+                  borderRadius: 99,
+                  fontSize: 11,
+                  fontWeight: 700
+                }}>
+                  {selectedSurvey.visit_result}
+                </span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderTop: '1px solid #1A2438', paddingTop: 8 }}>
                 <span style={{ color: '#64748B' }}>Proveedor Actual:</span>
-                <span>{selectedSurvey.prov_actual || 'N/A'}</span>
+                <strong style={{ color: '#F1F5F9' }}>{selectedSurvey.prov_actual || 'Sin proveedor'}</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderTop: '1px solid #1A2438', paddingTop: 8 }}>
                 <span style={{ color: '#64748B' }}>Pago Mensual Actual:</span>
-                <span style={{ color: green, fontWeight: 700 }}>${selectedSurvey.pago_mensual || '0'} USD</span>
+                <strong style={{ color: green, fontSize: 14 }}>${selectedSurvey.pago_mensual || '0'} USD</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderTop: '1px solid #1A2438', paddingTop: 8 }}>
                 <span style={{ color: '#64748B' }}>Plan Ofrecido SGF:</span>
-                <span style={{ color: cyber, fontWeight: 600 }}>{selectedSurvey.plan_sgf || 'N/A'}</span>
+                <strong style={{ color: cyber }}>{selectedSurvey.plan_sgf || 'Propuesta estándar'}</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderTop: '1px solid #1A2438', paddingTop: 8 }}>
                 <span style={{ color: '#64748B' }}>Contacto / Decisor:</span>
-                <span>{selectedSurvey.contacto_nombre || 'N/A'} ({selectedSurvey.contacto_tel || 'Sin tel'})</span>
+                <strong style={{ color: '#F8FAFC' }}>{selectedSurvey.contacto_nombre || 'No registrado'} {selectedSurvey.contacto_tel ? `(${selectedSurvey.contacto_tel})` : ''}</strong>
               </div>
+
+              {selectedSurvey.observaciones_visita && (
+                <div style={{ borderTop: '1px solid #1A2438', paddingTop: 8 }}>
+                  <span style={{ color: '#64748B', fontSize: 11, display: 'block', marginBottom: 4 }}>Observaciones de Visita:</span>
+                  <p style={{ color: '#94A3B8', fontSize: 12, margin: 0, fontStyle: 'italic' }}>"{selectedSurvey.observaciones_visita}"</p>
+                </div>
+              )}
+
               {selectedSurvey.fallas && selectedSurvey.fallas.length > 0 && (
-                <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #1F2937' }}>
-                  <span style={{ color: '#64748B', fontSize: 12, display: 'block', marginBottom: 4 }}>Fallas Reportadas del ISP actual:</span>
+                <div style={{ borderTop: '1px solid #1A2438', paddingTop: 10 }}>
+                  <span style={{ color: '#64748B', fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                    Fallas Reportadas del ISP actual
+                  </span>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {selectedSurvey.fallas.map((f, idx) => (
-                      <span key={idx} style={{ background: 'rgba(239, 68, 68, 0.15)', color: red, padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600 }}>⚠️ {f}</span>
+                      <span key={idx} style={{ background: 'rgba(239, 68, 68, 0.12)', border: `1px solid ${red}30`, color: '#FCA5A5', padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        ⚠️ {f}
+                      </span>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-            <button onClick={() => setSelectedSurvey(null)} style={{ width: '100%', padding: 12, borderRadius: 10, border: 'none', background: '#1E293B', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-              Cerrar Vista
+
+            <button
+              onClick={() => setSelectedSurvey(null)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: 12,
+                border: 'none',
+                background: `linear-gradient(135deg, ${brand}, ${cyber})`,
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: `0 4px 16px ${brand}40`
+              }}
+            >
+              Cerrar Ficha
             </button>
           </div>
         </div>

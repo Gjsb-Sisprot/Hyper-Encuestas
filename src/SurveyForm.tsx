@@ -232,17 +232,17 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#060913', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '30px 20px', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#060913', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 16px 40px', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
       
       {/* Brand Header */}
-      <header style={{ maxWidth: 640, width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <header style={{ maxWidth: 640, width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 42, height: 42, borderRadius: 12, background: `linear-gradient(135deg, ${brand}, ${cyber})`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 20px ${brand}60` }}>
+          <div style={{ width: 42, height: 42, borderRadius: 12, background: `linear-gradient(135deg, ${brand}, ${cyber})`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 20px ${brand}60`, flexShrink: 0 }}>
             <span style={{ color: '#fff', fontSize: 20, fontWeight: 900 }}>S</span>
           </div>
           <div>
             <h1 style={{ color: '#F8FAFC', fontSize: 16, fontWeight: 800, letterSpacing: '-.01em' }}>SISPROT GLOBAL FIBER</h1>
-            <p style={{ color: '#64748B', fontSize: 11 }}>Formulario Digital de Campo · Censo C.C. Hiper Jumbo 2026</p>
+            <p style={{ color: '#64748B', fontSize: 11 }}>Formulario Digital de Campo · Censo C.C. Hiper Jumbo</p>
           </div>
         </div>
 
@@ -267,7 +267,7 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
       </header>
 
       {/* Main Container */}
-      <div className="glass-panel animate-in" style={{ maxWidth: 640, width: '100%', borderRadius: 24, padding: 32, position: 'relative' }}>
+      <div className="glass-panel animate-in" style={{ maxWidth: 640, width: '100%', borderRadius: 20, padding: '24px 20px', position: 'relative' }}>
         
         {/* Stepper Navigation */}
         <div style={{ marginBottom: 28 }}>
