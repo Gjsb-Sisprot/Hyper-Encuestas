@@ -126,6 +126,24 @@ export async function saveSurveyResponse(survey: SurveyResponse): Promise<{ succ
   }
 }
 
+export async function fetchSurveysFromSupabase(): Promise<SurveyResponse[]> {
+  try {
+    const { data, error } = await supabase
+      .from('survey_responses')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.warn('Error al cargar encuestas desde Supabase:', error.message)
+      return []
+    }
+    return (data as SurveyResponse[]) || []
+  } catch (err) {
+    console.warn('Excepción al consultar encuestas:', err)
+    return []
+  }
+}
+
 export async function updateLeadInSupabase(id: string, updates: Partial<Lead>): Promise<boolean> {
   try {
     const { error } = await supabase

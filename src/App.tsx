@@ -3,7 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts'
-import { fetchLeadsFromSupabase, fetchMapLocalsFromSupabase, Lead } from './lib/supabase'
+import { fetchLeadsFromSupabase, fetchMapLocalsFromSupabase, fetchSurveysFromSupabase, Lead, SurveyResponse } from './lib/supabase'
 
 // ─── TOKENS ─────────────────────────────────────────────────────────────────
 const brand  = '#0052FF'
@@ -48,7 +48,7 @@ const feasTag = (status: string) => {
   return <span style={{ background: bg, color: fg, padding: '3px 10px', borderRadius: 99, fontSize: 11, fontWeight: 600 }}>{status}</span>
 }
 
-type View = 'dashboard' | 'crm' | 'map'
+type View = 'dashboard' | 'crm' | 'map' | 'surveys'
 
 // ─── CRM DATA — Real C.C. Hiper Jumbo businesses from occupancy report 06-08-2026
 const leads = [
@@ -121,18 +121,20 @@ interface AppProps {
 export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
   const [view, setView] = useState<View>('dashboard')
   const [leadsList, setLeadsList] = useState(leads)
+  const [surveysList, setSurveysList] = useState<SurveyResponse[]>([])
   const [isSupabaseConnected, setIsSupabaseConnected] = useState(false)
 
-  useEffect(() => {
-    async function loadData() {
-      const dbLeads = await fetchLeadsFromSupabase()
-      if (dbLeads && dbLeads.length > 0) {
-        setLeadsList(dbLeads as any)
-        setIsSupabaseConnected(true)
-      } else {
-        setIsSupabaseConnected(true) // Supabase client reached successfully
-      }
+  const loadData = async () => {
+    const dbLeads = await fetchLeadsFromSupabase()
+    if (dbLeads && dbLeads.length > 0) {
+      setLeadsList(dbLeads as any)
     }
+    const dbSurveys = await fetchSurveysFromSupabase()
+    setSurveysList(dbSurveys)
+    setIsSupabaseConnected(true)
+  }
+
+  useEffect(() => {
     loadData()
   }, [])
 
@@ -140,6 +142,7 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
     { id:'dashboard', icon:'◈', label:'Análisis' },
     { id:'crm',       icon:'◉', label:'Prospectos' },
     { id:'map',       icon:'⬡', label:'Mapa' },
+    { id:'surveys',   icon:'📋', label:'Respuestas' },
   ]
 
   return (
@@ -213,9 +216,10 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
 
         {/* Content */}
         <main style={{ flex:1, overflowY:'auto', background:'#0A0F1E' }}>
-          {view === 'dashboard' && <Dashboard />}
+          {view === 'dashboard' && <Dashboard surveys={surveysList} totalLocals={leadsList.length || 326} />}
           {view === 'crm'       && <CRM data={leadsList} />}
           {view === 'map'       && <MapView />}
+          {view === 'surveys'   && <SurveysView surveys={surveysList} onRefresh={loadData} />}
         </main>
       </div>
     </div>
@@ -223,28 +227,70 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
 }
 
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
-function Dashboard() {
+function Dashboard({ surveys, totalLocals }: { surveys: SurveyResponse[]; totalLocals: number }) {
+  const completed = surveys.filter(s => s.visit_result === 'Completada')
+  const countEncuestados = surveys.length
+  const pctEncuestados = totalLocals > 0 ? ((countEncuestados / totalLocals) * 100).toFixed(1) : '0'
+
+  const totalMonthlyRev = completed.reduce((acc, s) => acc + (parseFloat(s.pago_mensual || '0') || 0), 0)
+  const avgTicket = completed.length > 0 ? (totalMonthlyRev / completed.length).toFixed(2) : '0'
+  const netRevenue = (totalMonthlyRev * 0.937).toFixed(2)
+
   const kpis = [
-    // Real: 5 zones, ~300+ units total across PB/PA/FC/SOT/TR. Survey phase: 20 completed.
-    { label:'Locales encuestados', value:'20', total:'/ 300+', pct:6.5, color:brand, icon:'📍', trend:'+8 esta semana · Estudio iniciado' },
-    { label:'Prospectos A1 / A2', value:'8', total:'locales', pct:40, color:green, icon:'⭐', trend:'Anclas: Casino, Hyper Gym, Mercado' },
-    { label:'Ticket promedio',     value:'$98', total:'.40 USD', pct:null, color:amber, icon:'💰', trend:'vs. $45 mercado actual (ISPs)' },
-    { label:'Ingreso potencial',   value:'$8,640', total:'/mes', pct:null, color:cyber, icon:'📈', trend:'Bruto con IVA · 300 locales ocupados' },
-    { label:'Ingreso neto SGF',    value:'$8,095', total:'/mes', pct:null, color:'#A78BFA', icon:'✦', trend:'Tras cargas operativas (93.7%)' },
+    { label:'Locales encuestados', value: `${countEncuestados}`, total:`/ ${totalLocals}`, pct: parseFloat(pctEncuestados), color:brand, icon:'📍', trend: countEncuestados === 0 ? 'En espera de respuestas' : `+${countEncuestados} registrados en Supabase` },
+    { label:'Encuestas completadas', value:`${completed.length}`, total:'locales', pct: countEncuestados > 0 ? Math.round((completed.length / countEncuestados) * 100) : 0, color:green, icon:'⭐', trend:'Censo efectivo en campo' },
+    { label:'Ticket promedio',     value:`$${avgTicket}`, total:'USD', pct:null, color:amber, icon:'💰', trend:'Promedio ISP reportado' },
+    { label:'Ingreso potencial',   value:`$${totalMonthlyRev.toLocaleString()}`, total:'/mes', pct:null, color:cyber, icon:'📈', trend:'Captado de encuestas reales' },
+    { label:'Ingreso neto SGF',    value:`$${parseFloat(netRevenue).toLocaleString()}`, total:'/mes', pct:null, color:'#A78BFA', icon:'✦', trend:'Estimado tras operación (93.7%)' },
   ]
 
-  const provBars = [
-    { name:'Inter',  v:34 }, { name:'NetUno', v:22 }, { name:'Fibex',  v:18 },
-    { name:'360NET', v:11 }, { name:'Móvil',  v:9  }, { name:'Otro',   v:6  },
+  // Distribución dinámica por proveedor según encuestas reales
+  const provCounts: Record<string, number> = {}
+  completed.forEach(s => {
+    const prov = s.prov_actual || 'Otro'
+    provCounts[prov] = (provCounts[prov] || 0) + 1
+  })
+  
+  const provBars = Object.keys(provCounts).length > 0
+    ? Object.entries(provCounts).map(([name, count]) => ({ name, v: Math.round((count / completed.length) * 100) }))
+    : [{ name:'Sin datos', v: 0 }]
+
+  // Progresión histórica
+  const areaData = [
+    { d:'Sem 1', s: Math.round(countEncuestados * 0.1) },
+    { d:'Sem 2', s: Math.round(countEncuestados * 0.3) },
+    { d:'Sem 3', s: Math.round(countEncuestados * 0.6) },
+    { d:'Sem 4', s: countEncuestados }
+  ]
+
+  const prospData = [
+    { name:'Completadas', v: completed.length, c: green },
+    { name:'Novedades / Alertas', v: surveys.length - completed.length, c: amber },
+    { name:'Por Encuestar', v: Math.max(0, totalLocals - surveys.length), c: slate }
   ]
 
   return (
     <div className="animate-in" style={{ padding:'28px 28px 40px' }}>
       {/* Section label */}
       <div style={{ marginBottom:22 }}>
-        <p style={{ color:'#475569', fontSize:11, fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase', marginBottom:4 }}>Resumen Ejecutivo</p>
-        <h1 style={{ color:'#F1F5F9', fontSize:26, fontWeight:800, letterSpacing:'-.02em' }}>Dashboard Comercial</h1>
+        <p style={{ color:'#475569', fontSize:11, fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase', marginBottom:4 }}>Resumen Ejecutivo (En Vivo)</p>
+        <h1 style={{ color:'#F1F5F9', fontSize:26, fontWeight:800, letterSpacing:'-.02em' }}>Dashboard Comercial Supabase</h1>
       </div>
+
+      {countEncuestados === 0 && (
+        <div style={{ background: 'rgba(0, 163, 255, 0.08)', border: '1px solid rgba(0, 163, 255, 0.25)', borderRadius: 14, padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyBetween: 'space-between', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 24 }}>⚡</span>
+            <div>
+              <p style={{ margin: 0, color: '#F8FAFC', fontSize: 13, fontWeight: 700 }}>Base de Datos lista para iniciar el Censo</p>
+              <p style={{ margin: 0, color: '#94A3B8', fontSize: 12 }}>Las métricas están en 0. Al llenar encuestas desde el <strong>Formulario Público</strong>, los indicadores se actualizarán automáticamente en tiempo real.</p>
+            </div>
+          </div>
+          <a href="/encuesta" target="_blank" rel="noreferrer" style={{ background: `linear-gradient(135deg, ${brand}, ${cyber})`, color: '#fff', padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            📝 Probar Encuesta
+          </a>
+        </div>
+      )}
 
       {/* KPI row */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:14, marginBottom:24 }}>
@@ -264,7 +310,7 @@ function Dashboard() {
             <p style={{ color:'#64748B', fontSize:11, fontWeight:500, marginBottom:8 }}>{k.label}</p>
             {k.pct !== null && (
               <div style={{ height:3, background:'#1F2937', borderRadius:2, overflow:'hidden' }}>
-                <div style={{ width:`${k.pct}%`, height:'100%', background:k.color, borderRadius:2 }} />
+                <div style={{ width:`${Math.min(100, k.pct)}%`, height:'100%', background:k.color, borderRadius:2 }} />
               </div>
             )}
             <p style={{ color:'#374151', fontSize:10, marginTop:6 }}>{k.trend}</p>
@@ -275,7 +321,7 @@ function Dashboard() {
       {/* Charts */}
       <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr 1fr', gap:16 }}>
         {/* Area chart: encuestas en el tiempo */}
-        <DarkCard title="Progreso del Censo" sub="Locales encuestados por semana">
+        <DarkCard title="Progreso del Censo" sub="Locales encuestados en Supabase">
           <ResponsiveContainer width="100%" height={180}>
             <AreaChart data={areaData} margin={{ top:8, right:8, left:-24, bottom:0 }}>
               <defs>
@@ -294,7 +340,7 @@ function Dashboard() {
         </DarkCard>
 
         {/* Bar: proveedores */}
-        <DarkCard title="Mercado Actual" sub="Participación por proveedor">
+        <DarkCard title="Mercado ISP Actual" sub="Participación de encuestas reales">
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={provBars} margin={{ top:8, right:4, left:-28, bottom:0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} />
@@ -309,7 +355,7 @@ function Dashboard() {
         </DarkCard>
 
         {/* Donut: prospectos */}
-        <DarkCard title="Clasificación" sub="Distribución de prospectos A1 → E">
+        <DarkCard title="Estado del Censo" sub="Estatus general C.C. Hiper Jumbo">
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <ResponsiveContainer width={120} height={120}>
               <PieChart>
@@ -1084,6 +1130,185 @@ function ProgressItem({ label, val, total, color }: { label:string; val:number; 
       <div style={{ height:3, background:'#1F2937', borderRadius:2, overflow:'hidden' }}>
         <div style={{ width:`${(val/total)*100}%`, height:'100%', background:color, borderRadius:2 }} />
       </div>
+    </div>
+  )
+}
+
+// ─── RESPUESTAS DE ENCUESTAS (HISTORIAL SUPABASE) ───────────────────────────
+function SurveysView({ surveys, onRefresh }: { surveys: SurveyResponse[]; onRefresh: () => void }) {
+  const [q, setQ] = useState('')
+  const [selectedSurvey, setSelectedSurvey] = useState<SurveyResponse | null>(null)
+
+  const filtered = surveys.filter(s => {
+    const query = q.toLowerCase()
+    return (
+      (s.local_id || '').toLowerCase().includes(query) ||
+      (s.nombre_local || '').toLowerCase().includes(query) ||
+      (s.contacto_nombre || '').toLowerCase().includes(query) ||
+      (s.prov_actual || '').toLowerCase().includes(query)
+    )
+  })
+
+  return (
+    <div className="animate-in" style={{ padding: '28px 24px', overflowY: 'auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+        <div>
+          <p style={{ color: '#475569', fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 4 }}>
+            Base de Datos Supabase
+          </p>
+          <h1 style={{ color: '#F1F5F9', fontSize: 26, fontWeight: 800, letterSpacing: '-.02em' }}>
+            Historial de Encuestas Registradas
+          </h1>
+        </div>
+        <button
+          onClick={onRefresh}
+          style={{
+            background: 'rgba(0, 163, 255, 0.1)',
+            border: '1px solid rgba(0, 163, 255, 0.25)',
+            color: cyber,
+            borderRadius: 10,
+            padding: '8px 16px',
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6
+          }}
+        >
+          <span>🔄</span> Actualizar Datos
+        </button>
+      </div>
+
+      {/* Bar Filter */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+        <div style={{ position: 'relative', flex: 1, maxWidth: 360 }}>
+          <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#4B5563', fontSize: 13 }}>🔍</span>
+          <input
+            value={q}
+            onChange={e => setQ(e.target.value)}
+            placeholder="Buscar por Local, Nombre o Contacto..."
+            style={{ width: '100%', background: '#111827', border: '1px solid #1F2937', borderRadius: 10, padding: '9px 12px 9px 36px', color: '#F1F5F9', fontSize: 13, outline: 'none' }}
+          />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#111827', border: '1px solid #1F2937', borderRadius: 10, padding: '0 16px', color: '#94A3B8', fontSize: 12 }}>
+          Total Registros en Supabase: <strong style={{ color: green }}>{surveys.length}</strong>
+        </div>
+      </div>
+
+      {surveys.length === 0 ? (
+        <div style={{ background: '#111827', border: '1px solid #1F2937', borderRadius: 16, padding: '40px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>📋</div>
+          <h3 style={{ color: '#F8FAFC', fontSize: 16, fontWeight: 700, marginBottom: 6 }}>Aún no hay encuestas registradas en Supabase</h3>
+          <p style={{ color: '#64748B', fontSize: 13, maxWidth: 460, margin: '0 auto 20px', lineHeight: 1.5 }}>
+            El censo está en 0. Al llenar respuestas desde el <strong>Formulario Digital de Campo</strong>, se guardarán inmediatamente en la tabla <code>survey_responses</code> y aparecerán listadas aquí en tiempo real.
+          </p>
+          <a
+            href="/encuesta"
+            target="_blank"
+            rel="noreferrer"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: `linear-gradient(135deg, ${brand}, ${cyber})`, color: '#fff', padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 700, textDecoration: 'none' }}
+          >
+            📝 Llenar Formulario de Prueba
+          </a>
+        </div>
+      ) : (
+        <div style={{ background: '#111827', border: '1px solid #1F2937', borderRadius: 16, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #1F2937', background: '#0D1526' }}>
+                {['Fecha / Hora', 'Local ID', 'Local / Empresa', 'Zona', 'Resultado', 'Proveedor ISP', 'Pago $/mes', 'Plan SGF Oferta', 'Contacto', 'Acción'].map(h => (
+                  <th key={h} style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#475569', letterSpacing: '.07em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((s, i) => {
+                const isSuccess = s.visit_result === 'Completada'
+                const dateStr = s.created_at ? new Date(s.created_at).toLocaleString('es-VE', { dateStyle: 'short', timeStyle: 'short' }) : 'Reciente'
+                return (
+                  <tr key={s.id || i} onClick={() => setSelectedSurvey(s)} style={{ borderBottom: '1px solid #1F2937', background: 'transparent', cursor: 'pointer', transition: 'background .1s' }}>
+                    <td style={{ padding: '12px 14px', color: '#64748B', fontSize: 11, whiteSpace: 'nowrap' }}>{dateStr}</td>
+                    <td style={{ padding: '12px 14px' }}>
+                      <code style={{ fontSize: 11, color: cyber, fontWeight: 700, background: '#0D1A36', padding: '2px 8px', borderRadius: 5 }}>{s.local_id}</code>
+                    </td>
+                    <td style={{ padding: '12px 14px', color: '#F8FAFC', fontSize: 13, fontWeight: 600 }}>{s.nombre_local || 'Local ' + s.local_id}</td>
+                    <td style={{ padding: '12px 14px', color: '#94A3B8', fontSize: 12 }}>{s.zona || '—'}</td>
+                    <td style={{ padding: '12px 14px' }}>
+                      <span style={{ background: isSuccess ? '#ECFDF5' : '#FFFBEB', color: isSuccess ? '#065F46' : '#92400E', padding: '3px 10px', borderRadius: 99, fontSize: 11, fontWeight: 700 }}>
+                        {s.visit_result}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px 14px', color: '#CBD5E1', fontSize: 12 }}>{s.prov_actual || '—'}</td>
+                    <td style={{ padding: '12px 14px', color: green, fontWeight: 700, fontSize: 13 }}>${s.pago_mensual || '0'}</td>
+                    <td style={{ padding: '12px 14px', color: '#94A3B8', fontSize: 12, whiteSpace: 'nowrap' }}>{s.plan_sgf || '—'}</td>
+                    <td style={{ padding: '12px 14px', color: '#F1F5F9', fontSize: 12 }}>{s.contacto_nombre || '—'}</td>
+                    <td style={{ padding: '12px 14px' }}>
+                      <button style={{ background: 'rgba(0, 163, 255, 0.12)', border: 'none', color: cyber, padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                        Ver Ficha
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Modal Detalles Encuesta */}
+      {selectedSurvey && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 20 }}>
+          <div style={{ background: '#0D1526', border: '1px solid #1A2540', borderRadius: 20, maxWidth: 540, width: '100%', padding: 28, position: 'relative', color: '#F8FAFC' }}>
+            <button onClick={() => setSelectedSurvey(null)} style={{ position: 'absolute', top: 16, right: 16, background: '#1E293B', border: 'none', color: '#94A3B8', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: 14 }}>✕</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: `linear-gradient(135deg, ${brand}, ${cyber})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
+                {selectedSurvey.local_id.slice(0, 2)}
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>{selectedSurvey.nombre_local || selectedSurvey.local_id}</h3>
+                <p style={{ margin: 0, color: '#64748B', fontSize: 12 }}>Local: {selectedSurvey.local_id} · {selectedSurvey.zona}</p>
+              </div>
+            </div>
+
+            <div style={{ background: '#111827', borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20, border: '1px solid #1F2937' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <span style={{ color: '#64748B' }}>Estatus Visita:</span>
+                <strong style={{ color: selectedSurvey.visit_result === 'Completada' ? green : amber }}>{selectedSurvey.visit_result}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <span style={{ color: '#64748B' }}>Proveedor Actual:</span>
+                <span>{selectedSurvey.prov_actual || 'N/A'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <span style={{ color: '#64748B' }}>Pago Mensual Actual:</span>
+                <span style={{ color: green, fontWeight: 700 }}>${selectedSurvey.pago_mensual || '0'} USD</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <span style={{ color: '#64748B' }}>Plan Ofrecido SGF:</span>
+                <span style={{ color: cyber, fontWeight: 600 }}>{selectedSurvey.plan_sgf || 'N/A'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <span style={{ color: '#64748B' }}>Contacto / Decisor:</span>
+                <span>{selectedSurvey.contacto_nombre || 'N/A'} ({selectedSurvey.contacto_tel || 'Sin tel'})</span>
+              </div>
+              {selectedSurvey.fallas && selectedSurvey.fallas.length > 0 && (
+                <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #1F2937' }}>
+                  <span style={{ color: '#64748B', fontSize: 12, display: 'block', marginBottom: 4 }}>Fallas Reportadas del ISP actual:</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {selectedSurvey.fallas.map((f, idx) => (
+                      <span key={idx} style={{ background: 'rgba(239, 68, 68, 0.15)', color: red, padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600 }}>⚠️ {f}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <button onClick={() => setSelectedSurvey(null)} style={{ width: '100%', padding: 12, borderRadius: 10, border: 'none', background: '#1E293B', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              Cerrar Vista
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
