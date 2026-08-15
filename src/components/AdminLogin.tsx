@@ -98,7 +98,7 @@ export default function AdminLogin({ onLoginSuccess, onCancelPublic }: AdminLogi
             <span style={{ color: '#fff', fontSize: 24, fontWeight: 900 }}>S</span>
           </div>
           <h1 style={{ color: '#F8FAFC', fontSize: 22, fontWeight: 800, margin: '0 0 6px' }}>
-            SISPROT GLOBAL FIBER
+            HYPER ENCUESTAS SGF
           </h1>
           <p style={{ color: muted, fontSize: 13, margin: 0 }}>
             Acceso Administrativo — C.C. Hiper Jumbo

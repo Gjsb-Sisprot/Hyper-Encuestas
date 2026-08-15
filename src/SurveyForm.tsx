@@ -241,7 +241,7 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
             <span style={{ color: '#fff', fontSize: 20, fontWeight: 900 }}>S</span>
           </div>
           <div>
-            <h1 style={{ color: '#F8FAFC', fontSize: 16, fontWeight: 800, letterSpacing: '-.01em' }}>SISPROT GLOBAL FIBER</h1>
+            <h1 style={{ color: '#F8FAFC', fontSize: 16, fontWeight: 800, letterSpacing: '-.01em' }}>HYPER ENCUESTAS SGF</h1>
             <p style={{ color: '#64748B', fontSize: 11 }}>Formulario Digital de Campo · Censo C.C. Hiper Jumbo</p>
           </div>
         </div>

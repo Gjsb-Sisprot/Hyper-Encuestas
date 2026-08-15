@@ -172,9 +172,9 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
         {/* Top bar */}
         <header className="top-header" style={{ height:52, background:'#0D1526', borderBottom:`1px solid #1A2540`, display:'flex', alignItems:'center', padding:'0 20px', gap:12, flexShrink:0 }}>
           <div style={{ minWidth: 0 }}>
-            <span style={{ color:'#fff', fontSize:14, fontWeight:700 }}>C.C. Hiper Jumbo</span>
+            <span style={{ color:'#fff', fontSize:14, fontWeight:700 }}>Hyper Encuestas SGF</span>
             <span style={{ color:'#1E3A5F', margin:'0 8px' }}>·</span>
-            <span style={{ color:'#64748B', fontSize:12 }}>Panel Administrativo SGF</span>
+            <span style={{ color:'#64748B', fontSize:12 }}>C.C. Hiper Jumbo</span>
           </div>
           <div style={{ flex:1 }} />
           
