@@ -278,7 +278,7 @@ function Dashboard({ surveys, totalLocals }: { surveys: SurveyResponse[]; totalL
       </div>
 
       {countEncuestados === 0 && (
-        <div style={{ background: 'rgba(0, 163, 255, 0.08)', border: '1px solid rgba(0, 163, 255, 0.25)', borderRadius: 14, padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyBetween: 'space-between', gap: 16 }}>
+        <div style={{ background: 'rgba(0, 163, 255, 0.08)', border: '1px solid rgba(0, 163, 255, 0.25)', borderRadius: 14, padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ fontSize: 24 }}>⚡</span>
             <div>

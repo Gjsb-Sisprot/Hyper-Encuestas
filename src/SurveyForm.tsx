@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { saveSurveyResponse } from './lib/supabase'
+import { useState, useEffect } from 'react'
+import { saveSurveyResponse, fetchLeadsFromSupabase, Lead } from './lib/supabase'
 
 const brand = '#0052FF'
 const cyber = '#00A3FF'
@@ -21,10 +21,13 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [dbLocals, setDbLocals] = useState<Lead[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [pisoFilter, setPisoFilter] = useState('TODOS')
 
   // Form State
   const [formData, setFormData] = useState({
-    localId: 'PB-04',
+    localId: 'PB04',
     nombreLocal: 'Mobile Shop Las Americas',
     zona: 'Planta Baja',
     vendedor: 'Carlos Ramírez',
@@ -51,6 +54,25 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
     rolDecision: 'Decisor Directo',
     canal: 'WhatsApp'
   })
+
+  useEffect(() => {
+    async function loadLocals() {
+      const leads = await fetchLeadsFromSupabase()
+      if (leads && leads.length > 0) {
+        setDbLocals(leads)
+        if (leads[0]) {
+          setFormData(prev => ({
+            ...prev,
+            localId: leads[0].id,
+            nombreLocal: leads[0].nombre,
+            zona: leads[0].zona,
+            provActual: leads[0].prov !== 'Por Encuestar' ? leads[0].prov : 'Inter'
+          }))
+        }
+      }
+    }
+    loadLocals()
+  }, [])
 
   // Dynamic steps depending on visit result
   const isVisitSuccessful = formData.visitResult === 'Completada'
@@ -276,23 +298,75 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
         {step === 0 && (
           <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div>
-              <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
-                Selecciona el Local Comercial
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600 }}>
+                  Selecciona el Local Comercial ({dbLocals.length > 0 ? dbLocals.length + ' locales disponibles' : 'Cargando censo...'})
+                </label>
+              </div>
+
+              {/* Filtros rápidos por Piso */}
+              <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+                {['TODOS', 'PLANTA BAJA', 'PLANTA ALTA', 'FERIA DE COMIDA', 'SOTANO'].map(piso => (
+                  <button
+                    key={piso}
+                    type="button"
+                    onClick={() => setPisoFilter(piso)}
+                    style={{
+                      background: pisoFilter === piso ? `linear-gradient(135deg, ${brand}, ${cyber})` : 'rgba(255, 255, 255, 0.06)',
+                      border: pisoFilter === piso ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+                      color: pisoFilter === piso ? '#fff' : '#94A3B8',
+                      padding: '4px 10px',
+                      borderRadius: 8,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {piso}
+                  </button>
+                ))}
+              </div>
+
+              {/* Buscador de Locales */}
+              <div style={{ position: 'relative', marginBottom: 10 }}>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748B', fontSize: 13 }}>🔍</span>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Escribe ID o Nombre (ej: PB04, Casino, Express, PA50)..."
+                  style={{
+                    width: '100%',
+                    background: 'rgba(15, 23, 42, 0.9)',
+                    border: '1px solid rgba(0, 163, 255, 0.25)',
+                    borderRadius: 10,
+                    padding: '10px 12px 10px 36px',
+                    color: '#F8FAFC',
+                    fontSize: 13,
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              {/* Selector principal */}
               <select
                 value={formData.localId}
                 onChange={e => {
                   const val = e.target.value
-                  const names: Record<string, [string, string]> = {
-                    'PB-04': ['Mobile Shop Las Americas', 'Planta Baja'],
-                    'PA-50': ['Casino Platinum VIP', 'Planta Alta'],
-                    'PA-04': ['Hyper Mercado Modelo', 'Planta Alta'],
-                    'SOT-36': ['Hyper Gym Fitness', 'Sótano'],
-                    'PA-07': ['TU PUNTO SHOP Electronic', 'Planta Alta'],
-                    'PA-09': ['Farmacia Malanga', 'Planta Alta']
+                  const found = dbLocals.find(l => l.id === val)
+                  if (found) {
+                    setFormData({
+                      ...formData,
+                      localId: found.id,
+                      nombreLocal: found.nombre,
+                      zona: found.zona,
+                      provActual: found.prov !== 'Por Encuestar' ? found.prov : formData.provActual,
+                      pagoMensual: found.pago ? String(found.pago) : formData.pagoMensual
+                    })
+                  } else {
+                    setFormData({ ...formData, localId: val })
                   }
-                  const [nombre, zona] = names[val] || ['Local Comercial', 'Planta Baja']
-                  setFormData({ ...formData, localId: val, nombreLocal: nombre, zona })
                 }}
                 style={{
                   width: '100%',
@@ -302,15 +376,20 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
                   padding: '12px 14px',
                   color: '#F8FAFC',
                   fontSize: 14,
-                  outline: 'none'
+                  outline: 'none',
+                  boxSizing: 'border-box'
                 }}
               >
-                <option value="PB-04">PB-04 — Mobile Shop Las Americas (Planta Baja)</option>
-                <option value="PA-50">PA-50 — Casino Platinum VIP (Planta Alta)</option>
-                <option value="PA-04">PA-04 — Hyper Mercado Modelo (Planta Alta)</option>
-                <option value="SOT-36">SOT-36 — Hyper Gym Fitness (Sótano)</option>
-                <option value="PA-07">PA-07 — TU PUNTO SHOP Electronic (Planta Alta)</option>
-                <option value="PA-09">PA-09 — Farmacia Malanga (Planta Alta)</option>
+                {dbLocals.filter(l => {
+                  const matchPiso = pisoFilter === 'TODOS' || l.zona.toUpperCase().includes(pisoFilter.toUpperCase())
+                  const q = searchQuery.toLowerCase()
+                  const matchQuery = !q || l.id.toLowerCase().includes(q) || l.nombre.toLowerCase().includes(q) || l.cat.toLowerCase().includes(q)
+                  return matchPiso && matchQuery
+                }).map(l => (
+                  <option key={l.id} value={l.id}>
+                    [{l.id}] {l.nombre} — {l.zona} ({l.cat})
+                  </option>
+                ))}
               </select>
             </div>
 
