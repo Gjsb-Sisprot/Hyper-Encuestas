@@ -59,6 +59,9 @@ CREATE TABLE IF NOT EXISTS public.survey_responses (
     contacto_tel TEXT,
     contacto_email TEXT,
     rol_decision TEXT,
+    horario_atencion TEXT,
+    mejor_horario_visita TEXT,
+    notas_cierre TEXT,
     canal TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );

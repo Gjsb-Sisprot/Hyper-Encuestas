@@ -59,7 +59,10 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
     contactoNombre: 'Ana Martínez',
     contactoTel: '+58 412-555-0198',
     contactoEmail: 'ana@mobileshop.ve',
-    rolDecision: 'Decisor Directo',
+    rolDecision: 'Propietario / Dueño',
+    horarioAtencion: 'Lunes a Sábado 9:00 AM - 7:00 PM',
+    mejorHorarioVisita: 'Martes y Jueves 2:00 PM - 4:00 PM',
+    notasCierre: 'Interesado en prueba piloto de fibra. Evaluar enlace dedicado.',
     canal: 'WhatsApp'
   })
 
@@ -140,6 +143,9 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
         contacto_tel: formData.contactoTel,
         contacto_email: formData.contactoEmail,
         rol_decision: formData.rolDecision,
+        horario_atencion: formData.horarioAtencion,
+        mejor_horario_visita: formData.mejorHorarioVisita,
+        notas_cierre: formData.notasCierre,
         canal: formData.canal
       })
 
@@ -773,17 +779,19 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
           </div>
         )}
 
-        {/* STEP 4 (Visita exitosa): Contacto & Cierre */}
+        {/* STEP 4 (Visita exitosa): Decisor, Horarios & Cierre Comercial */}
         {isVisitSuccessful && step === 3 && (
           <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {/* Decisor & Rol de Decisión */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <div>
                 <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
-                  Nombre del Decisor / Encargado
+                  👤 Nombre del Decisor / Encargado
                 </label>
                 <input
                   value={formData.contactoNombre}
                   onChange={e => setFormData({ ...formData, contactoNombre: e.target.value })}
+                  placeholder="Ej: Ana Martínez (Gerente / Dueño)"
                   style={{
                     width: '100%',
                     background: 'rgba(15, 23, 42, 0.8)',
@@ -799,11 +807,64 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
 
               <div>
                 <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
-                  Teléfono WhatsApp
+                  👑 Rol en la Toma de Decisión
+                </label>
+                <select
+                  value={formData.rolDecision}
+                  onChange={e => setFormData({ ...formData, rolDecision: e.target.value })}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(15, 23, 42, 0.8)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: 10,
+                    padding: '10px 14px',
+                    color: cyber,
+                    fontWeight: 700,
+                    fontSize: 13,
+                    outline: 'none'
+                  }}
+                >
+                  <option value="Propietario / Dueño">Propietario / Dueño Directo</option>
+                  <option value="Gerente General">Gerente General / Administrador</option>
+                  <option value="Jefe de Sistemas / IT">Jefe de Sistemas / IT</option>
+                  <option value="Encargado de Turno">Encargado de Turno (Sin firma)</option>
+                  <option value="Socio Operativo">Socio Operativo</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Teléfono & Email de Contacto Directo */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div>
+                <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                  📱 Teléfono Directo / WhatsApp
                 </label>
                 <input
                   value={formData.contactoTel}
                   onChange={e => setFormData({ ...formData, contactoTel: e.target.value })}
+                  placeholder="+58 412-555-0198"
+                  style={{
+                    width: '100%',
+                    background: 'rgba(15, 23, 42, 0.8)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: 10,
+                    padding: '10px 14px',
+                    color: '#F8FAFC',
+                    fontSize: 13,
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                  ✉️ Correo Electrónico Corporativo
+                </label>
+                <input
+                  type="email"
+                  value={formData.contactoEmail}
+                  onChange={e => setFormData({ ...formData, contactoEmail: e.target.value })}
+                  placeholder="gerencia@empresa.com"
                   style={{
                     width: '100%',
                     background: 'rgba(15, 23, 42, 0.8)',
@@ -818,31 +879,108 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
               </div>
             </div>
 
+            {/* Horarios Operativos & Ventana Ideal de Visita */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div>
+                <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                  ⏰ Horario de Atención del Local
+                </label>
+                <input
+                  type="text"
+                  value={formData.horarioAtencion || ''}
+                  onChange={e => setFormData({ ...formData, horarioAtencion: e.target.value })}
+                  placeholder="Ej: Lunes a Sábado 9:00 AM - 7:00 PM"
+                  style={{
+                    width: '100%',
+                    background: 'rgba(15, 23, 42, 0.8)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: 10,
+                    padding: '10px 14px',
+                    color: '#F8FAFC',
+                    fontSize: 13,
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                  📅 Mejor Momento / Día para Contactar o Visitar
+                </label>
+                <input
+                  type="text"
+                  value={formData.mejorHorarioVisita || ''}
+                  onChange={e => setFormData({ ...formData, mejorHorarioVisita: e.target.value })}
+                  placeholder="Ej: Martes y Jueves 2:00 PM - 4:00 PM"
+                  style={{
+                    width: '100%',
+                    background: 'rgba(15, 23, 42, 0.8)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: 10,
+                    padding: '10px 14px',
+                    color: amber,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Canal Preferido de Contacto */}
             <div>
               <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
-                Canal Preferido de Contacto
+                🚀 Canal Preferido de Seguimiento Comercial
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                {['WhatsApp', 'Llamada', 'Visita Presencial'].map(c => (
+                {[
+                  { label: '💬 WhatsApp Directo', val: 'WhatsApp' },
+                  { label: '📞 Llamada Telefónica', val: 'Llamada' },
+                  { label: '🤝 Visita Presencial Asesor', val: 'Visita Presencial' }
+                ].map(c => (
                   <button
-                    key={c}
+                    key={c.val}
                     type="button"
-                    onClick={() => setFormData({ ...formData, canal: c })}
+                    onClick={() => setFormData({ ...formData, canal: c.val })}
                     style={{
                       padding: 12,
                       borderRadius: 10,
-                      border: `1.5px solid ${formData.canal === c ? green : 'rgba(255, 255, 255, 0.1)'}`,
-                      background: formData.canal === c ? `${green}20` : 'rgba(15, 23, 42, 0.6)',
-                      color: formData.canal === c ? green : '#94A3B8',
+                      border: `1.5px solid ${formData.canal === c.val ? green : 'rgba(255, 255, 255, 0.1)'}`,
+                      background: formData.canal === c.val ? `${green}20` : 'rgba(15, 23, 42, 0.6)',
+                      color: formData.canal === c.val ? green : '#94A3B8',
                       fontSize: 12,
                       fontWeight: 600,
                       cursor: 'pointer'
                     }}
                   >
-                    {c}
+                    {c.label}
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Notas Estratégicas para el Asesor Comercial */}
+            <div>
+              <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                📝 Notas Estratégicas de Cierre / Observaciones para el Asesor
+              </label>
+              <textarea
+                rows={2}
+                value={formData.notasCierre || ''}
+                onChange={e => setFormData({ ...formData, notasCierre: e.target.value })}
+                placeholder="Ejemplo: Requiere demostración de velocidad en horas pico. Se le vence contrato actual en 15 días..."
+                style={{
+                  width: '100%',
+                  background: 'rgba(15, 23, 42, 0.8)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: 10,
+                  padding: '10px 14px',
+                  color: '#F8FAFC',
+                  fontSize: 12,
+                  outline: 'none',
+                  resize: 'none'
+                }}
+              />
             </div>
           </div>
         )}

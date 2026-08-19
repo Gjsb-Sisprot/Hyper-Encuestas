@@ -58,6 +58,9 @@ export interface SurveyResponse {
   pagos_automatizados?: string
   interes_automatizar?: string
   rol_decision?: string
+  horario_atencion?: string
+  mejor_horario_visita?: string
+  notas_cierre?: string
   canal?: string
   created_at?: string
 }
