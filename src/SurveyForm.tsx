@@ -37,12 +37,18 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
     
     // Conectividad
     provActual: 'Inter',
+    velocidad: '50',
+    pagoMensual: '45',
     satisfaccion: 3,
     fallas: ['Cortes frecuentes'],
     impacto: 'Medio',
 
     // Redes Sociales & Presencia Digital
     redesSociales: '@mobileshop.ve',
+    instagram: '@mobileshop.ve',
+    facebook: '',
+    tiktok: '',
+    whatsappBusiness: '+58 412-555-0198',
 
     // Sistema de Facturación & ERP / Automatización de Pagos
     sistemaFacturacion: 'Saint / Profit Plus',
@@ -68,7 +74,8 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
             localId: leads[0].id,
             nombreLocal: leads[0].nombre,
             zona: leads[0].zona,
-            provActual: leads[0].prov !== 'Por Encuestar' ? leads[0].prov : 'Inter'
+            provActual: leads[0].prov !== 'Por Encuestar' ? leads[0].prov : 'Inter',
+            pagoMensual: leads[0].pago ? String(leads[0].pago) : prev.pagoMensual
           }))
         }
       }
@@ -80,7 +87,7 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
   const isVisitSuccessful = formData.visitResult === 'Completada'
 
   const steps = isVisitSuccessful
-    ? ['1. Ubicación & Estado', '2. Servicio Actual & Fallas', '3. Facturación & ERP', '4. Decisor & Cierre']
+    ? ['1. Ubicación & Estado', '2. Conectividad & Redes', '3. Facturación & ERP', '4. Decisor & Cierre']
     : ['1. Ubicación & Estado', '2. Reporte de Incidencia & Cierre']
 
   const validateStep = () => {
@@ -114,10 +121,18 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
         motivo_no_realizada: formData.motivoNoRealizada,
         observaciones_visita: formData.observacionesVisita,
         prov_actual: formData.provActual,
+        velocidad: formData.velocidad,
+        pago_mensual: formData.pagoMensual,
         satisfaccion: formData.satisfaccion,
         fallas: formData.fallas,
         impacto: formData.impacto,
-        redes_sociales: formData.redesSociales,
+        redes_sociales: [
+          formData.instagram ? `IG: ${formData.instagram}` : '',
+          formData.facebook ? `FB: ${formData.facebook}` : '',
+          formData.tiktok ? `TK: ${formData.tiktok}` : '',
+          formData.whatsappBusiness ? `WA: ${formData.whatsappBusiness}` : '',
+          formData.redesSociales ? formData.redesSociales : ''
+        ].filter(Boolean).join(' | '),
         sistema_facturacion: formData.sistemaFacturacion,
         pagos_automatizados: formData.pagosAutomatizados,
         interes_automatizar: formData.interesAutomatizar,
@@ -535,26 +550,101 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
               </div>
             </div>
 
+            {/* Cuántos Megas y Cuánto Paga */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div>
+                <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                  ⚡ ¿Cuántos Megas (Mbps) tiene contratados?
+                </label>
+                <input
+                  type="number"
+                  value={formData.velocidad}
+                  onChange={e => setFormData({ ...formData, velocidad: e.target.value })}
+                  placeholder="Ej: 50, 100, 300"
+                  style={{
+                    width: '100%',
+                    background: 'rgba(15, 23, 42, 0.8)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: 10,
+                    padding: '10px 14px',
+                    color: '#F8FAFC',
+                    fontSize: 13,
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                  💵 ¿Cuánto paga al mes ($ USD)?
+                </label>
+                <input
+                  type="number"
+                  value={formData.pagoMensual}
+                  onChange={e => setFormData({ ...formData, pagoMensual: e.target.value })}
+                  placeholder="Ej: 35, 50, 120"
+                  style={{
+                    width: '100%',
+                    background: 'rgba(15, 23, 42, 0.8)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: 10,
+                    padding: '10px 14px',
+                    color: green,
+                    fontWeight: 700,
+                    fontSize: 13,
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Redes Sociales Múltiples */}
             <div>
-              <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
-                📲 Redes Sociales del Negocio (Instagram, TikTok, Sitio Web)
+              <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>
+                🌐 Redes Sociales y Presencia Digital del Negocio
               </label>
-              <input
-                type="text"
-                value={formData.redesSociales}
-                onChange={e => setFormData({ ...formData, redesSociales: e.target.value })}
-                placeholder="Ejemplo: @minegocio.ve / www.minegocio.com"
-                style={{
-                  width: '100%',
-                  background: 'rgba(15, 23, 42, 0.8)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  borderRadius: 10,
-                  padding: '10px 14px',
-                  color: '#F8FAFC',
-                  fontSize: 13,
-                  outline: 'none'
-                }}
-              />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ color: '#64748B', fontSize: 11, display: 'block', marginBottom: 4 }}>📸 Instagram</label>
+                  <input
+                    type="text"
+                    value={formData.instagram}
+                    onChange={e => setFormData({ ...formData, instagram: e.target.value })}
+                    placeholder="@usuario_ig"
+                    style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, padding: '8px 10px', color: '#F8FAFC', fontSize: 12, outline: 'none' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ color: '#64748B', fontSize: 11, display: 'block', marginBottom: 4 }}>📱 WhatsApp Business</label>
+                  <input
+                    type="text"
+                    value={formData.whatsappBusiness}
+                    onChange={e => setFormData({ ...formData, whatsappBusiness: e.target.value })}
+                    placeholder="+58 4XX-XXXXXXX"
+                    style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, padding: '8px 10px', color: '#F8FAFC', fontSize: 12, outline: 'none' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ color: '#64748B', fontSize: 11, display: 'block', marginBottom: 4 }}>📘 Facebook / FanPage</label>
+                  <input
+                    type="text"
+                    value={formData.facebook}
+                    onChange={e => setFormData({ ...formData, facebook: e.target.value })}
+                    placeholder="facebook.com/pagina"
+                    style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, padding: '8px 10px', color: '#F8FAFC', fontSize: 12, outline: 'none' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ color: '#64748B', fontSize: 11, display: 'block', marginBottom: 4 }}>🎵 TikTok / Sitio Web</label>
+                  <input
+                    type="text"
+                    value={formData.tiktok}
+                    onChange={e => setFormData({ ...formData, tiktok: e.target.value })}
+                    placeholder="@tiktok / web.com"
+                    style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, padding: '8px 10px', color: '#F8FAFC', fontSize: 12, outline: 'none' }}
+                  />
+                </div>
+              </div>
             </div>
 
             <div>
