@@ -821,8 +821,8 @@ function MapView() {
           </div>
 
           {/* Interactive SVG Rendering */}
-          <div style={{ flex: 1, width: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="100%" height="100%" viewBox="0 0 520 480" style={{ overflow: 'visible' }}>
+          <div style={{ flex: 1, width: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'auto', minHeight: 460 }}>
+            <svg width="100%" height="100%" viewBox="0 0 520 480" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible', maxHeight: '100%' }}>
               <defs>
                 <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
                   <circle cx="10" cy="10" r="0.75" fill="rgba(255,255,255,0.08)" />
