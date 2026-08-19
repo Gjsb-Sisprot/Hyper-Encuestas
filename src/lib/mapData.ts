@@ -172,22 +172,25 @@ export function generateAllMallUnits(): MallUnit[] {
         return { id: item.id, nombre: item.nombre, floor, x: 400, y: 260, w: 300, h: 180, score: 'A1', cat: item.cat, prov: item.prov || 'Inter', estado: 'alquilado', pago: 260, plan: item.plan }
       }
 
-      const idx = floorCounts.PA++
+      if (item.id.startsWith('FC')) {
+        // ZONA EXCLUSIVA DE FERIA DE COMIDA (FC) - Cuadrícula Arriba Izquierda sin colisiones
+        const fcIdx = floorCounts.PA++
+        const col = fcIdx % 4
+        const row = Math.floor(fcIdx / 4)
+        return { id: item.id, nombre: item.nombre, floor, x: 50 + col * 82, y: 60 + row * 76, w: 76, h: 68, score: item.score || 'B', cat: item.cat, prov: item.prov || 'Datos Móviles', estado: 'alquilado', pago: item.pago || 55 }
+      }
 
-      if (item.id.startsWith('FC') || idx < 20) {
-        // ZONA FERIA DE COMIDA (Bloque Izquierda)
-        const col = idx % 4
-        const row = Math.floor(idx / 4)
-        return { id: item.id, nombre: item.nombre, floor, x: 50 + col * 80, y: 60 + row * 74, w: 74, h: 66, score: item.score || 'B', cat: item.cat, prov: item.prov || 'Datos Móviles', estado: 'alquilado', pago: item.pago || 55 }
-      } else if (idx < 35) {
-        // ZONA DERECHA PA
-        const rightIdx = idx - 20
-        const col = rightIdx % 4
-        const row = Math.floor(rightIdx / 4)
-        return { id: item.id, nombre: item.nombre, floor, x: 730 + col * 82, y: 60 + row * 74, w: 76, h: 66, score: item.score || 'C', cat: item.cat, prov: item.prov || '360NET', estado: 'alquilado', pago: item.pago || 40 }
+      // LOCALES REGULARES PA - Cuadrícula a partir de y = 470px (debajo de Anclas y Feria) y Ala Derecha
+      const paIdx = (floorCounts.SOT++) // contador propio para PA locales
+      
+      if (paIdx < 16) {
+        // Ala Derecha PA (x >= 730)
+        const col = paIdx % 4
+        const row = Math.floor(paIdx / 4)
+        return { id: item.id, nombre: item.nombre, floor, x: 730 + col * 82, y: 60 + row * 76, w: 76, h: 68, score: item.score || 'C', cat: item.cat, prov: item.prov || '360NET', estado: 'alquilado', pago: item.pago || 40 }
       } else {
-        // ZONA SUR PA
-        const botIdx = idx - 35
+        // Ala Inferior PA (y = 470)
+        const botIdx = paIdx - 16
         const col = botIdx % 12
         const row = Math.floor(botIdx / 12)
         return { id: item.id, nombre: item.nombre, floor, x: 50 + col * 82, y: 470 + row * 76, w: 76, h: 68, score: item.score || 'E', cat: item.cat, prov: item.prov || 'Sin servicio', estado: 'disponible', pago: item.pago || 0 }
