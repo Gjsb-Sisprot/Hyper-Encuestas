@@ -238,14 +238,21 @@ function Dashboard({ surveys, totalLocals }: { surveys: SurveyResponse[]; totalL
 
   const totalMonthlyRev = completed.reduce((acc, s) => acc + (parseFloat(s.pago_mensual || '0') || 0), 0)
   const avgTicket = completed.length > 0 ? (totalMonthlyRev / completed.length).toFixed(2) : '0'
-  const netRevenue = (totalMonthlyRev * 0.937).toFixed(2)
+
+  // Cálculos de cuota de mercado en todo el Centro Comercial (~300+ locales)
+  const sgfClientsCount = leads.filter(l => l.prov.includes('SGF') || l.prov.includes('Sisprot')).length || 0
+  const sgfSharePct = totalLocals > 0 ? ((sgfClientsCount / totalLocals) * 100).toFixed(1) : '0'
+
+  // Competidores principales
+  const interCount = leads.filter(l => l.prov === 'Inter').length || 0
+  const interPct = totalLocals > 0 ? ((interCount / totalLocals) * 100).toFixed(1) : '0'
 
   const kpis = [
     { label:'Locales encuestados', value: `${countEncuestados}`, total:`/ ${totalLocals}`, pct: parseFloat(pctEncuestados), color:brand, icon:'📍', trend: countEncuestados === 0 ? 'En espera de respuestas' : `+${countEncuestados} registrados en Supabase` },
+    { label:'Dominio Mercado SGF', value:`${sgfSharePct}%`, total:`(${sgfClientsCount} locales)`, pct: parseFloat(sgfSharePct), color:cyber, icon:'⚡', trend:`SGF vs Inter (${interPct}%) en C.C.` },
     { label:'Encuestas completadas', value:`${completed.length}`, total:'locales', pct: countEncuestados > 0 ? Math.round((completed.length / countEncuestados) * 100) : 0, color:green, icon:'⭐', trend:'Censo efectivo en campo' },
     { label:'Ticket promedio',     value:`$${avgTicket}`, total:'USD', pct:null, color:amber, icon:'💰', trend:'Promedio ISP reportado' },
-    { label:'Ingreso potencial',   value:`$${totalMonthlyRev.toLocaleString()}`, total:'/mes', pct:null, color:cyber, icon:'📈', trend:'Captado de encuestas reales' },
-    { label:'Ingreso neto SGF',    value:`$${parseFloat(netRevenue).toLocaleString()}`, total:'/mes', pct:null, color:'#A78BFA', icon:'✦', trend:'Estimado tras operación (93.7%)' },
+    { label:'Ingreso potencial',   value:`$${totalMonthlyRev.toLocaleString()}`, total:'/mes', pct:null, color:'#A78BFA', icon:'📈', trend:'Captado de encuestas reales' },
   ]
 
   // Distribución dinámica por proveedor según encuestas reales
