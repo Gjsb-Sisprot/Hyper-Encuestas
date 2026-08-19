@@ -53,6 +53,10 @@ export interface SurveyResponse {
   contacto_nombre?: string
   contacto_tel?: string
   contacto_email?: string
+  redes_sociales?: string
+  sistema_facturacion?: string
+  pagos_automatizados?: string
+  interes_automatizar?: string
   rol_decision?: string
   canal?: string
   created_at?: string

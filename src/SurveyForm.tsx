@@ -37,15 +37,17 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
     
     // Conectividad
     provActual: 'Inter',
-    velocidad: '50',
-    pagoMensual: '45',
-    verificadoFactura: true,
-    satisfaccion: 2,
-    fallas: ['Cortes frecuentes', 'Lentitud en hora pico'],
-    impacto: 'Alto',
-    
-    // Propuesta
-    planSGF: 'PYME 300 Mbps ($44.83/mes)',
+    satisfaccion: 3,
+    fallas: ['Cortes frecuentes'],
+    impacto: 'Medio',
+
+    // Redes Sociales & Presencia Digital
+    redesSociales: '@mobileshop.ve',
+
+    // Sistema de Facturación & ERP / Automatización de Pagos
+    sistemaFacturacion: 'Saint / Profit Plus',
+    pagosAutomatizados: 'Parcialmente (Puntos / Pago Móvil)',
+    interesAutomatizar: 'Sí, totalmente interesado',
 
     // Contacto
     contactoNombre: 'Ana Martínez',
@@ -78,7 +80,7 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
   const isVisitSuccessful = formData.visitResult === 'Completada'
 
   const steps = isVisitSuccessful
-    ? ['1. Ubicación & Estado', '2. Conectividad Actual', '3. Oferta SGF', '4. Decisor & Cierre']
+    ? ['1. Ubicación & Estado', '2. Servicio Actual & Fallas', '3. Facturación & ERP', '4. Decisor & Cierre']
     : ['1. Ubicación & Estado', '2. Reporte de Incidencia & Cierre']
 
   const validateStep = () => {
@@ -112,13 +114,13 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
         motivo_no_realizada: formData.motivoNoRealizada,
         observaciones_visita: formData.observacionesVisita,
         prov_actual: formData.provActual,
-        velocidad: formData.velocidad,
-        pago_mensual: formData.pagoMensual,
-        verificado_factura: formData.verificadoFactura,
         satisfaccion: formData.satisfaccion,
         fallas: formData.fallas,
         impacto: formData.impacto,
-        plan_sgf: formData.planSGF,
+        redes_sociales: formData.redesSociales,
+        sistema_facturacion: formData.sistemaFacturacion,
+        pagos_automatizados: formData.pagosAutomatizados,
+        interes_automatizar: formData.interesAutomatizar,
         contacto_nombre: formData.contactoNombre,
         contacto_tel: formData.contactoTel,
         contacto_email: formData.contactoEmail,
@@ -503,7 +505,7 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
           </div>
         )}
 
-        {/* STEP 2 (Si la visita fue exitosa): Conectividad Actual */}
+        {/* STEP 2 (Si la visita fue exitosa): Conectividad Actual & Redes Sociales */}
         {isVisitSuccessful && step === 1 && (
           <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div>
@@ -533,48 +535,26 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <div>
-                <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
-                  Velocidad Declarada (Mbps)
-                </label>
-                <input
-                  type="number"
-                  value={formData.velocidad}
-                  onChange={e => setFormData({ ...formData, velocidad: e.target.value })}
-                  style={{
-                    width: '100%',
-                    background: 'rgba(15, 23, 42, 0.8)',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    borderRadius: 10,
-                    padding: '10px 14px',
-                    color: '#F8FAFC',
-                    fontSize: 14,
-                    outline: 'none'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
-                  Pago Mensual Estimado ($ USD)
-                </label>
-                <input
-                  type="number"
-                  value={formData.pagoMensual}
-                  onChange={e => setFormData({ ...formData, pagoMensual: e.target.value })}
-                  style={{
-                    width: '100%',
-                    background: 'rgba(15, 23, 42, 0.8)',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    borderRadius: 10,
-                    padding: '10px 14px',
-                    color: '#F8FAFC',
-                    fontSize: 14,
-                    outline: 'none'
-                  }}
-                />
-              </div>
+            <div>
+              <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                📲 Redes Sociales del Negocio (Instagram, TikTok, Sitio Web)
+              </label>
+              <input
+                type="text"
+                value={formData.redesSociales}
+                onChange={e => setFormData({ ...formData, redesSociales: e.target.value })}
+                placeholder="Ejemplo: @minegocio.ve / www.minegocio.com"
+                style={{
+                  width: '100%',
+                  background: 'rgba(15, 23, 42, 0.8)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: 10,
+                  padding: '10px 14px',
+                  color: '#F8FAFC',
+                  fontSize: 13,
+                  outline: 'none'
+                }}
+              />
             </div>
 
             <div>
@@ -613,35 +593,89 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
           </div>
         )}
 
-        {/* STEP 3 (Visita exitosa): Plan SGF */}
+        {/* STEP 3 (Visita exitosa): Sistema de Facturación / ERP & Automatización de Pagos */}
         {isVisitSuccessful && step === 2 && (
           <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div>
-              <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 10 }}>
-                Selecciona el Plan Sugerido para la Cotización
+              <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                💼 ¿Qué Sistema de Facturación / ERP utiliza el negocio?
               </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <input
+                type="text"
+                value={formData.sistemaFacturacion}
+                onChange={e => setFormData({ ...formData, sistemaFacturacion: e.target.value })}
+                placeholder="Ejemplo: Saint, Profit Plus, A2, Valery, Sistema Propio, Ninguno..."
+                style={{
+                  width: '100%',
+                  background: 'rgba(15, 23, 42, 0.8)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: 10,
+                  padding: '10px 14px',
+                  color: '#F8FAFC',
+                  fontSize: 13,
+                  outline: 'none'
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                💳 ¿Sus cobros y pagos actualmente están automatizados?
+              </label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {[
-                  { plan: 'PYME 100 Mbps ($32.67/mes)', desc: '100 Mbps ↓ / 50 Mbps ↑ · Ideal para cobro por punto de venta' },
-                  { plan: 'PYME 300 Mbps ($44.83/mes)', desc: '300 Mbps ↓ / 150 Mbps ↑ · Plan Recomendado Anclas & Tiendas' },
-                  { plan: 'Empresarial 600 Mbps ($77.96/mes)', desc: '600 Mbps ↓ / 300 Mbps ↑ · Alta demanda / Casino & Supermercado' },
-                ].map(item => (
+                  'Sí, 100% automatizados (Pasarela / Conciliación automática)',
+                  'Parcialmente (Puntos de Venta / Pago Móvil manual)',
+                  'No, todo se procesa de forma manual'
+                ].map(opt => (
                   <button
-                    key={item.plan}
+                    key={opt}
                     type="button"
-                    onClick={() => setFormData({ ...formData, planSGF: item.plan })}
+                    onClick={() => setFormData({ ...formData, pagosAutomatizados: opt })}
                     style={{
-                      padding: 16,
-                      borderRadius: 14,
-                      border: `1.5px solid ${formData.planSGF === item.plan ? brand : 'rgba(255, 255, 255, 0.1)'}`,
-                      background: formData.planSGF === item.plan ? `linear-gradient(135deg, ${brand}30, rgba(13,21,38,0.9))` : 'rgba(15, 23, 42, 0.6)',
-                      color: '#F8FAFC',
+                      padding: 12,
+                      borderRadius: 10,
+                      border: `1.5px solid ${formData.pagosAutomatizados === opt ? cyber : 'rgba(255, 255, 255, 0.1)'}`,
+                      background: formData.pagosAutomatizados === opt ? `${cyber}20` : 'rgba(15, 23, 42, 0.6)',
+                      color: formData.pagosAutomatizados === opt ? cyber : '#94A3B8',
+                      fontSize: 12,
+                      fontWeight: 600,
                       textAlign: 'left',
                       cursor: 'pointer'
                     }}
                   >
-                    <p style={{ fontSize: 14, fontWeight: 700, color: formData.planSGF === item.plan ? cyber : '#F8FAFC' }}>{item.plan}</p>
-                    <p style={{ fontSize: 11, color: '#94A3B8', marginTop: 4 }}>{item.desc}</p>
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                ⚡ ¿Les interesaría que sus cobros y pagos se automatizaran totalmente?
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                {[
+                  { label: 'Sí, Interesado', val: 'Sí, totalmente interesado', color: green },
+                  { label: 'Tal vez', val: 'Tal vez / Evaluar propuesta', color: amber },
+                  { label: 'No por ahora', val: 'No por ahora', color: red }
+                ].map(opt => (
+                  <button
+                    key={opt.val}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, interesAutomatizar: opt.val })}
+                    style={{
+                      padding: 12,
+                      borderRadius: 10,
+                      border: `1.5px solid ${formData.interesAutomatizar === opt.val ? opt.color : 'rgba(255, 255, 255, 0.1)'}`,
+                      background: formData.interesAutomatizar === opt.val ? `${opt.color}20` : 'rgba(15, 23, 42, 0.6)',
+                      color: formData.interesAutomatizar === opt.val ? opt.color : '#94A3B8',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {opt.label}
                   </button>
                 ))}
               </div>

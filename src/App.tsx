@@ -1240,7 +1240,7 @@ function SurveysView({ surveys, onRefresh }: { surveys: SurveyResponse[]; onRefr
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #1F2937', background: '#0D1526' }}>
-                {['Fecha / Hora', 'Local ID', 'Local / Empresa', 'Zona', 'Resultado', 'Proveedor ISP', 'Pago $/mes', 'Plan SGF Oferta', 'Contacto', 'Acción'].map(h => (
+                {['Fecha / Hora', 'Local ID', 'Local / Empresa', 'Zona', 'Resultado', 'Proveedor ISP', 'Redes Sociales', 'Sistema ERP / Fact.', 'Cobros Auto.', 'Interés Auto.', 'Contacto', 'Acción'].map(h => (
                   <th key={h} style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#475569', letterSpacing: '.07em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -1263,8 +1263,21 @@ function SurveysView({ surveys, onRefresh }: { surveys: SurveyResponse[]; onRefr
                       </span>
                     </td>
                     <td style={{ padding: '12px 14px', color: '#CBD5E1', fontSize: 12 }}>{s.prov_actual || '—'}</td>
-                    <td style={{ padding: '12px 14px', color: green, fontWeight: 700, fontSize: 13 }}>${s.pago_mensual || '0'}</td>
-                    <td style={{ padding: '12px 14px', color: '#94A3B8', fontSize: 12, whiteSpace: 'nowrap' }}>{s.plan_sgf || '—'}</td>
+                    <td style={{ padding: '12px 14px', color: '#38BDF8', fontSize: 12, fontWeight: 600 }}>{s.redes_sociales || '—'}</td>
+                    <td style={{ padding: '12px 14px', color: '#F8FAFC', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>{s.sistema_facturacion || '—'}</td>
+                    <td style={{ padding: '12px 14px', color: '#94A3B8', fontSize: 11 }}>{s.pagos_automatizados || '—'}</td>
+                    <td style={{ padding: '12px 14px' }}>
+                      <span style={{
+                        background: s.interes_automatizar?.includes('Sí') ? 'rgba(16,185,129,0.15)' : s.interes_automatizar?.includes('Tal vez') ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.05)',
+                        color: s.interes_automatizar?.includes('Sí') ? green : s.interes_automatizar?.includes('Tal vez') ? amber : '#94A3B8',
+                        padding: '3px 8px',
+                        borderRadius: 6,
+                        fontSize: 11,
+                        fontWeight: 700
+                      }}>
+                        {s.interes_automatizar || '—'}
+                      </span>
+                    </td>
                     <td style={{ padding: '12px 14px', color: '#F1F5F9', fontSize: 12 }}>{s.contacto_nombre || '—'}</td>
                     <td style={{ padding: '12px 14px' }}>
                       <button style={{ background: 'rgba(0, 163, 255, 0.12)', border: 'none', color: cyber, padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
@@ -1354,13 +1367,23 @@ function SurveysView({ surveys, onRefresh }: { surveys: SurveyResponse[]; onRefr
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderTop: '1px solid #1A2438', paddingTop: 8 }}>
-                <span style={{ color: '#64748B' }}>Pago Mensual Actual:</span>
-                <strong style={{ color: green, fontSize: 14 }}>${selectedSurvey.pago_mensual || '0'} USD</strong>
+                <span style={{ color: '#64748B' }}>Redes Sociales:</span>
+                <strong style={{ color: cyber }}>{selectedSurvey.redes_sociales || 'No registrado'}</strong>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderTop: '1px solid #1A2438', paddingTop: 8 }}>
-                <span style={{ color: '#64748B' }}>Plan Ofrecido SGF:</span>
-                <strong style={{ color: cyber }}>{selectedSurvey.plan_sgf || 'Propuesta estándar'}</strong>
+                <span style={{ color: '#64748B' }}>Sistema de Facturación / ERP:</span>
+                <strong style={{ color: '#F8FAFC' }}>{selectedSurvey.sistema_facturacion || 'No registrado'}</strong>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderTop: '1px solid #1A2438', paddingTop: 8 }}>
+                <span style={{ color: '#64748B' }}>¿Pagos Automatizados?:</span>
+                <strong style={{ color: '#CBD5E1' }}>{selectedSurvey.pagos_automatizados || 'No registrado'}</strong>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderTop: '1px solid #1A2438', paddingTop: 8 }}>
+                <span style={{ color: '#64748B' }}>Interés en Automatización:</span>
+                <strong style={{ color: selectedSurvey.interes_automatizar?.includes('Sí') ? green : amber }}>{selectedSurvey.interes_automatizar || 'No registrado'}</strong>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderTop: '1px solid #1A2438', paddingTop: 8 }}>
