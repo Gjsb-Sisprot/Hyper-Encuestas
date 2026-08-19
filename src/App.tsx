@@ -4,6 +4,7 @@ import {
   PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts'
 import { fetchLeadsFromSupabase, fetchMapLocalsFromSupabase, fetchSurveysFromSupabase, Lead, SurveyResponse } from './lib/supabase'
+import { generateAllMallUnits, MallUnit } from './lib/mapData'
 
 // ─── TOKENS ─────────────────────────────────────────────────────────────────
 const brand  = '#0052FF'
@@ -631,100 +632,7 @@ function InfoLine({ label, val }: { label:string; val:string }) {
 // ─── MAP DATA — Real C.C. Hiper Jumbo architecture from blueprint layout ─────────────────────
 type FloorId = 'PB' | 'PA' | 'SOT' | 'EXT'
 
-interface MallUnit {
-  id: string
-  nombre: string
-  floor: FloorId
-  x: number
-  y: number
-  w: number
-  h: number
-  score: 'A1' | 'A2' | 'B' | 'C' | 'D' | 'E'
-  cat: string
-  prov: string
-  estado: 'alquilado' | 'disponible' | 'obra' | 'legal'
-  pago: number
-  plan?: string
-}
-
-const allMallUnits: MallUnit[] = [
-  // ── PLANTA BAJA (PB) ──
-  // Pasillo Norte (Arriba)
-  { id:'PB16', nombre:'Zapatería Ferrara', floor:'PB', x:120, y:30, w:30, h:35, score:'B', cat:'Calzado', prov:'NetUno', estado:'alquilado', pago:45 },
-  { id:'PB19', nombre:'Boutique Paris', floor:'PB', x:155, y:30, w:30, h:35, score:'C', cat:'Moda', prov:'Inter', estado:'alquilado', pago:30 },
-  { id:'PB20', nombre:'Perfumería Glam', floor:'PB', x:190, y:30, w:30, h:35, score:'B', cat:'Cosméticos', prov:'Fibex', estado:'alquilado', pago:40 },
-  { id:'PB21', nombre:'Óptica Vision', floor:'PB', x:225, y:30, w:30, h:35, score:'A2', cat:'Salud', prov:'360NET', estado:'alquilado', pago:55 },
-  { id:'PB22', nombre:'Joyas & Relojes', floor:'PB', x:260, y:30, w:30, h:35, score:'B', cat:'Joyería', prov:'Inter', estado:'alquilado', pago:38 },
-  { id:'PB23', nombre:'Electronix Tech', floor:'PB', x:295, y:30, w:30, h:35, score:'A1', cat:'Tecnología', prov:'Inter', estado:'alquilado', pago:90 },
-  { id:'PB24', nombre:'Celular Store', floor:'PB', x:330, y:30, w:30, h:35, score:'A2', cat:'Telefonía', prov:'Datos Móviles', estado:'alquilado', pago:0 },
-  { id:'PB25', nombre:'Local Disponible', floor:'PB', x:365, y:30, w:30, h:35, score:'E', cat:'Disponible', prov:'—', estado:'disponible', pago:0 },
-  { id:'PB26', nombre:'Kiosco Dulces', floor:'PB', x:400, y:30, w:30, h:35, score:'C', cat:'Golosinas', prov:'Otro', estado:'alquilado', pago:20 },
-  { id:'PB27', nombre:'Cajeros Mercantil', floor:'PB', x:435, y:30, w:35, h:35, score:'A1', cat:'Banca', prov:'Fibex', estado:'alquilado', pago:120 },
-
-  // Pasillo Oeste (Izquierda)
-  { id:'PB01', nombre:'Banco Provincial', floor:'PB', x:30, y:80, w:60, h:75, score:'A1', cat:'Banca', prov:'NetUno', estado:'alquilado', pago:220 },
-  { id:'PB02', nombre:'Farmacia SAAS', floor:'PB', x:30, y:160, w:60, h:45, score:'A1', cat:'Farmacia', prov:'Inter', estado:'alquilado', pago:160 },
-  { id:'PB03', nombre:'Tiro D\'Eskina Cafe', floor:'PB', x:30, y:210, w:60, h:40, score:'B', cat:'Cafetería', prov:'NetUno', estado:'alquilado', pago:50 },
-  { id:'PB04', nombre:'Mobile Shop America', floor:'PB', x:30, y:255, w:60, h:45, score:'A2', cat:'Telefonía', prov:'Datos Móviles', estado:'disponible', pago:0 },
-  { id:'PB05', nombre:'Lógica Digital CA', floor:'PB', x:30, y:305, w:60, h:40, score:'B', cat:'Tecnología', prov:'360NET', estado:'alquilado', pago:35 },
-  { id:'PB06', nombre:'Dogs Market Mascotas', floor:'PB', x:30, y:350, w:60, h:40, score:'D', cat:'Mascotas', prov:'Sin servicio', estado:'alquilado', pago:0 },
-  { id:'PB07', nombre:'Creativy Space', floor:'PB', x:30, y:395, w:60, h:40, score:'B', cat:'Impresiones', prov:'Fibex', estado:'alquilado', pago:42 },
-
-  // Gran Ancla Central — Hiper Mercado / Área de Servicio
-  { id:'PB57', nombre:'Hyper Mercado Modelo (Ancla)', floor:'PB', x:110, y:100, w:310, h:270, score:'A1', cat:'Supermercado', prov:'Inter', estado:'alquilado', pago:280, plan:'600 Mbps Emp.' },
-  { id:'PB_SERV', nombre:'Área de Carga, Descarga & Bombas', floor:'PB', x:110, y:380, w:310, h:90, score:'E', cat:'Servicios Téc.', prov:'—', estado:'legal', pago:0 },
-
-  // Pasillo Este (Derecha)
-  { id:'PB31', nombre:'Banesco Banco', floor:'PB', x:440, y:90, w:50, h:35, score:'A1', cat:'Banca', prov:'NetUno', estado:'alquilado', pago:210 },
-  { id:'PB32', nombre:'Movistar Atención', floor:'PB', x:440, y:130, w:50, h:35, score:'A1', cat:'Telecom', prov:'Fibex', estado:'alquilado', pago:180 },
-  { id:'PB33', nombre:'Digitel Agente', floor:'PB', x:440, y:170, w:50, h:35, score:'A2', cat:'Telecom', prov:'Inter', estado:'alquilado', pago:95 },
-  { id:'PB34', nombre:'Heladería EFE', floor:'PB', x:440, y:210, w:50, h:35, score:'C', cat:'Postres', prov:'Otro', estado:'alquilado', pago:25 },
-  { id:'PB35', nombre:'Disponible Pasillo', floor:'PB', x:440, y:250, w:50, h:40, score:'E', cat:'Disponible', prov:'—', estado:'disponible', pago:0 },
-  { id:'PB44', nombre:'Banco de Venezuela', floor:'PB', x:440, y:380, w:50, h:80, score:'A1', cat:'Banca', prov:'Inter', estado:'disponible', pago:0 },
-
-  // ── PLANTA ALTA (PA) ──
-  // Anclas Principales
-  { id:'PA50', nombre:'Casino Platinum VIP', floor:'PA', x:190, y:120, w:150, h:110, score:'A1', cat:'Entretenimiento', prov:'Inter', estado:'alquilado', pago:210, plan:'600 Mbps Emp.' },
-  { id:'PA51', nombre:'Cinex Hiper Jumbo (Salas)', floor:'PA', x:190, y:235, w:150, h:95, score:'A1', cat:'Cine / Ocio', prov:'Inter', estado:'alquilado', pago:260, plan:'600 Mbps Emp.' },
-  { id:'PA70', nombre:'Hyper Gym Fitness Center', floor:'PA', x:120, y:340, w:220, h:110, score:'A1', cat:'Gimnasio', prov:'NetUno', estado:'alquilado', pago:145, plan:'600 Mbps Emp.' },
-
-  // Pasillo Norte PA
-  { id:'PA01', nombre:'SISPROT GLOBAL FIBER (SGF)', floor:'PA', x:110, y:30, w:40, h:40, score:'A1', cat:'Oficina SGF', prov:'SGF Directo', estado:'alquilado', pago:0 },
-  { id:'PA04', nombre:'Hyper Mercado Admin', floor:'PA', x:155, y:30, w:40, h:40, score:'A1', cat:'Oficinas', prov:'Inter', estado:'alquilado', pago:280 },
-  { id:'PA06', nombre:'Lotus Beauty Studio', floor:'PA', x:200, y:30, w:40, h:40, score:'A2', cat:'Belleza/Spa', prov:'NetUno', estado:'alquilado', pago:38 },
-  { id:'PA07', nombre:'TU PUNTO SHOP Electronic', floor:'PA', x:245, y:30, w:40, h:40, score:'A1', cat:'Electrónica', prov:'Fibex', estado:'alquilado', pago:55 },
-  { id:'PA09', nombre:'Farmacia Malanga PA', floor:'PA', x:290, y:30, w:40, h:40, score:'A2', cat:'Farmacia', prov:'Inter', estado:'alquilado', pago:48 },
-  { id:'PA12', nombre:'Disponible Nivel Techo', floor:'PA', x:335, y:30, w:40, h:40, score:'E', cat:'Disponible', prov:'—', estado:'disponible', pago:0 },
-
-  // Feria de Comida (Izquierda PA)
-  { id:'FC01', nombre:'Joanes Lunch & Grill', floor:'PA', x:30, y:80, w:65, h:40, score:'B', cat:'Feria Comida', prov:'Datos Móviles', estado:'disponible', pago:0 },
-  { id:'FC02', nombre:'Express Hong Kong', floor:'PA', x:30, y:125, w:65, h:40, score:'B', cat:'Feria Comida', prov:'Otro', estado:'obra', pago:22 },
-  { id:'FC04', nombre:'Pizza Mia Italian', floor:'PA', x:30, y:170, w:65, h:40, score:'B', cat:'Feria Comida', prov:'Inter', estado:'alquilado', pago:30 },
-  { id:'FC07', nombre:'Shawarma Corner VIP', floor:'PA', x:30, y:215, w:65, h:40, score:'C', cat:'Feria Comida', prov:'Otro', estado:'alquilado', pago:18 },
-  { id:'FC09', nombre:'L\'Artigian Gourmet', floor:'PA', x:30, y:260, w:65, h:40, score:'D', cat:'Feria Comida', prov:'Sin servicio', estado:'legal', pago:0 },
-  { id:'FC05', nombre:'Sazón Express Criollo', floor:'PA', x:30, y:305, w:65, h:40, score:'B', cat:'Feria Comida', prov:'NetUno', estado:'alquilado', pago:36 },
-
-  // Pasillo Este PA
-  { id:'PA18', nombre:'Moda Italia Boutique', floor:'PA', x:360, y:100, w:50, h:35, score:'B', cat:'Ropa', prov:'Fibex', estado:'alquilado', pago:45 },
-  { id:'PA20', nombre:'Lokuras Fashion VIP', floor:'PA', x:360, y:140, w:50, h:35, score:'C', cat:'Moda', prov:'NetUno', estado:'alquilado', pago:31 },
-  { id:'PA24', nombre:'Disponible Pasillo Este', floor:'PA', x:360, y:180, w:50, h:40, score:'E', cat:'Disponible', prov:'—', estado:'disponible', pago:0 },
-  { id:'PA30', nombre:'Venezia Joyas PA', floor:'PA', x:360, y:225, w:50, h:35, score:'C', cat:'Joyería', prov:'360NET', estado:'alquilado', pago:28 },
-  { id:'PA_SUITE', nombre:'Torre de Enfriamiento & Chillers', floor:'PA', x:360, y:340, w:110, h:110, score:'E', cat:'Infraestructura', prov:'—', estado:'legal', pago:0 },
-
-  // ── SÓTANO (SOT) ──
-  { id:'SOT14', nombre:'Depósito Central Logística', floor:'SOT', x:30, y:60, w:70, h:50, score:'C', cat:'Almacén', prov:'NetUno', estado:'alquilado', pago:40 },
-  { id:'SOT15', nombre:'Servicios y Mantenimiento CC', floor:'SOT', x:30, y:115, w:70, h:45, score:'B', cat:'Servicios', prov:'Inter', estado:'alquilado', pago:55 },
-  { id:'SOT17', nombre:'Estacionamiento VIP Control', floor:'SOT', x:30, y:180, w:70, h:60, score:'E', cat:'Disponible', prov:'—', estado:'disponible', pago:0 },
-  { id:'SOT36', nombre:'Depósito Ancla Casino', floor:'SOT', x:360, y:60, w:110, h:180, score:'A1', cat:'Almacén Ancla', prov:'Inter', estado:'alquilado', pago:110 },
-  { id:'SOT_PARK', nombre:'Estacionamiento Semisótano (275 Puestos)', floor:'SOT', x:115, y:60, w:235, h:300, score:'E', cat:'Parking', prov:'—', estado:'alquilado', pago:0 },
-  { id:'SOT22', nombre:'Oficinas Administrativas CC', floor:'SOT', x:115, y:370, w:120, h:60, score:'A2', cat:'Administración', prov:'Fibex', estado:'alquilado', pago:85 },
-  { id:'SOT30', nombre:'Taller Eléctrico & Subestación', floor:'SOT', x:245, y:370, w:130, h:60, score:'B', cat:'Técnico', prov:'Inter', estado:'alquilado', pago:60 },
-
-  // ── EXTERIOR / LUNA PARK (EXT) ──
-  { id:'EXT_PARK', nombre:'Estacionamiento General & Acometidas SGF', floor:'EXT', x:40, y:60, w:240, h:380, score:'A1', cat:'Estacionamiento', prov:'SGF Fibra', estado:'alquilado', pago:0 },
-  { id:'EXT_LUNA', nombre:'Área Total Para Luna Park (8,452.75 m²)', floor:'EXT', x:290, y:60, w:170, h:200, score:'A1', cat:'Eventos/Recreación', prov:'Inter', estado:'alquilado', pago:350 },
-  { id:'EXT_PATIO', nombre:'Patio de Servicio & Carga Pesada', floor:'EXT', x:290, y:270, w:170, h:170, score:'E', cat:'Logística', prov:'—', estado:'legal', pago:0 },
-]
+const allMallUnits: MallUnit[] = generateAllMallUnits()
 
 function MapView() {
   const [activeFloor, setActiveFloor] = useState<FloorId>('PB')
@@ -733,20 +641,22 @@ function MapView() {
   const [hovPos, setHovPos] = useState({ x: 0, y: 0 })
   const [searchTerm, setSearchTerm] = useState('')
   const [filterScore, setFilterScore] = useState<string>('all')
+  const [filterProv, setFilterProv] = useState<string>('all')
 
   const floors: { id: FloorId; label: string; sub: string; badge: string; color: string }[] = [
-    { id:'PB',  label:'Planta Baja',           sub:'PB01 → PB57 · Hipermercado & Bancos', badge:'57 Locales', color:'#3B82F6' },
-    { id:'PA',  label:'Planta Alta',           sub:'PA01 → PA70 · Casino, Cinex & Feria',  badge:'70 Locales', color:'#8B5CF6' },
-    { id:'SOT', label:'Planta Sótano',         sub:'SOT01 → SOT69 · Gym & Estacionamiento',badge:'69 Locales', color:'#10B981' },
-    { id:'EXT', label:'Exteriores & Luna Park',sub:'8,452.75 m² · Patio Servicio & Parking',badge:'Zona Abierta',color:'#F59E0B' },
+    { id:'PB',  label:'Planta Baja',           sub:'PB01 → PB75 · Hipermercado, Bancos & Pasillos', badge:`${allMallUnits.filter(u => u.floor === 'PB').length} Locales`, color:'#3B82F6' },
+    { id:'PA',  label:'Planta Alta',           sub:'PA01 → PA70 · Casino, Cinex & Feria (FC)',     badge:`${allMallUnits.filter(u => u.floor === 'PA').length} Locales`, color:'#8B5CF6' },
+    { id:'SOT', label:'Planta Sótano',         sub:'SOT01 → SOT69 · Gym, Parking & Depósitos',     badge:`${allMallUnits.filter(u => u.floor === 'SOT').length} Locales`, color:'#10B981' },
+    { id:'EXT', label:'Exteriores & Luna Park',sub:'8,452.75 m² · Patio Servicio & Parking',       badge:`${allMallUnits.filter(u => u.floor === 'EXT').length} Locales`, color:'#F59E0B' },
   ]
 
   // Filter units for the active floor
   const currentUnits = allMallUnits.filter(u => {
     const matchFloor = u.floor === activeFloor
-    const matchSearch = u.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || u.id.toLowerCase().includes(searchTerm.toLowerCase()) || u.cat.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchSearch = u.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || u.id.toLowerCase().includes(searchTerm.toLowerCase()) || u.cat.toLowerCase().includes(searchTerm.toLowerCase()) || u.prov.toLowerCase().includes(searchTerm.toLowerCase())
     const matchScore = filterScore === 'all' || u.score === filterScore
-    return matchFloor && matchSearch && matchScore
+    const matchProv = filterProv === 'all' || (filterProv === 'Sin servicio' ? (u.prov === 'Sin servicio' || u.prov === 'Por Encuestar' || u.prov === '—') : u.prov.includes(filterProv))
+    return matchFloor && matchSearch && matchScore && matchProv
   })
 
   // Summary counts for current floor
@@ -813,6 +723,32 @@ function MapView() {
             <option value="C">Score C (Medio)</option>
             <option value="D">Score D (Bajo)</option>
             <option value="E">Disponible / Vacío</option>
+          </select>
+
+          {/* ISP filter */}
+          <select
+            value={filterProv}
+            onChange={e => setFilterProv(e.target.value)}
+            style={{
+              background: 'rgba(15, 23, 42, 0.8)',
+              border: '1px solid rgba(0, 163, 255, 0.3)',
+              borderRadius: 10,
+              padding: '7px 12px',
+              color: '#38BDF8',
+              fontSize: 12,
+              fontWeight: 600,
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="all">🌐 Todos los Proveedores</option>
+            <option value="Inter">Inter (Fibra / Cable)</option>
+            <option value="NetUno">NetUno</option>
+            <option value="Fibex">Fibex Telecom</option>
+            <option value="360NET">360NET</option>
+            <option value="SGF">SGF Fibra Directa</option>
+            <option value="Datos">Datos Móviles</option>
+            <option value="Sin servicio">Sin Servicio / Por Encuestar</option>
           </select>
         </div>
       </div>
@@ -968,10 +904,10 @@ function MapView() {
                     {/* Unit ID Tag */}
                     <text
                       x={unit.x + unit.w / 2}
-                      y={unit.y + (unit.h > 40 ? 16 : unit.h / 2 + 3)}
+                      y={unit.y + (unit.h > 40 ? 13 : unit.h / 2 + 1)}
                       textAnchor="middle"
                       style={{
-                        fontSize: unit.w > 60 ? 10 : 8,
+                        fontSize: unit.w > 60 ? 9.5 : 7.5,
                         fill: strokeColor,
                         fontWeight: 800,
                         fontFamily: 'JetBrains Mono, monospace'
@@ -980,21 +916,19 @@ function MapView() {
                       {unit.id}
                     </text>
 
-                    {/* Unit Name (if space allows) */}
-                    {unit.h >= 35 && unit.w >= 45 && (
-                      <text
-                        x={unit.x + unit.w / 2}
-                        y={unit.y + 28}
-                        textAnchor="middle"
-                        style={{
-                          fontSize: 7.5,
-                          fill: '#94A3B8',
-                          fontWeight: 500
-                        }}
-                      >
-                        {unit.nombre.length > 14 ? unit.nombre.slice(0, 12) + '…' : unit.nombre}
-                      </text>
-                    )}
+                    {/* Unit ISP Provider Badge */}
+                    <text
+                      x={unit.x + unit.w / 2}
+                      y={unit.y + (unit.h > 40 ? 25 : unit.h / 2 + 11)}
+                      textAnchor="middle"
+                      style={{
+                        fontSize: 7,
+                        fill: unit.prov.includes('Inter') ? '#3B82F6' : unit.prov.includes('Fibex') ? '#10B981' : unit.prov.includes('NetUno') ? '#8B5CF6' : unit.prov.includes('360NET') ? '#F59E0B' : '#94A3B8',
+                        fontWeight: 700
+                      }}
+                    >
+                      {unit.prov && unit.prov !== '—' ? (unit.prov.length > 9 ? unit.prov.slice(0, 8) + '…' : unit.prov) : 'Sin ISP'}
+                    </text>
                   </g>
                 )
               })}
@@ -1015,7 +949,7 @@ function MapView() {
                 pointerEvents: 'none',
                 zIndex: 9999,
                 boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
-                minWidth: 180
+                minWidth: 190
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                   <span style={{ color: cyber, fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>{hovUnit.id}</span>
@@ -1023,6 +957,10 @@ function MapView() {
                 </div>
                 <p style={{ color: '#F8FAFC', fontWeight: 700, fontSize: 13 }}>{hovUnit.nombre}</p>
                 <p style={{ color: '#94A3B8', fontSize: 11, marginTop: 2 }}>Rubro: {hovUnit.cat}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 6 }}>
+                  <span style={{ fontSize: 11 }}>🌐</span>
+                  <span style={{ color: '#38BDF8', fontSize: 11, fontWeight: 700 }}>ISP: {hovUnit.prov || 'Sin Registrar'}</span>
+                </div>
                 <p style={{ color: hovUnit.pago > 0 ? green : '#64748B', fontSize: 11, fontWeight: 700, marginTop: 4 }}>
                   {hovUnit.pago > 0 ? `Pago actual: $${hovUnit.pago}/mes` : 'Sin Facturación Actual'}
                 </p>
