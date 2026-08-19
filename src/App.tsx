@@ -646,7 +646,7 @@ function MapView() {
 
   const floors: { id: FloorId; label: string; sub: string; badge: string; color: string }[] = [
     { id:'PB',  label:'Planta Baja',           sub:'PB01 → PB75 · Hipermercado, Bancos & Pasillos', badge:`${unitsState.filter(u => u.floor === 'PB').length} Locales`, color:'#3B82F6' },
-    { id:'PA',  label:'Planta Alta',           sub:'PA01 → PA70 · Casino, Cinex & Feria (FC)',     badge:`${unitsState.filter(u => u.floor === 'PA').length} Locales`, color:'#8B5CF6' },
+    { id:'PA',  label:'Planta Alta',           sub:'PA01 → PA70 · Casino, Cines Unidos & Feria (FC)', badge:`${unitsState.filter(u => u.floor === 'PA').length} Locales`, color:'#8B5CF6' },
     { id:'SOT', label:'Planta Sótano',         sub:'SOT01 → SOT69 · Gym, Parking & Depósitos',     badge:`${unitsState.filter(u => u.floor === 'SOT').length} Locales`, color:'#10B981' },
     { id:'EXT', label:'Exteriores & Luna Park',sub:'8,452.75 m² · Patio Servicio & Parking',       badge:`${unitsState.filter(u => u.floor === 'EXT').length} Locales`, color:'#F59E0B' },
   ]
@@ -855,7 +855,7 @@ function MapView() {
               {activeFloor === 'PA' && (
                 <>
                   <text x="550" y="815" textAnchor="middle" style={{ fontSize: 13, fill: '#8B5CF6', fontWeight: 800, letterSpacing: '.15em' }}>
-                    NIVEL PLANTA ALTA — CASINO PLATINUM (PA50), CINEX (PA41) & FERIA DE COMIDA (FC)
+                    NIVEL PLANTA ALTA — CASINO PLATINUM (PA50), CINES UNIDOS (PA41) & FERIA DE COMIDA (FC)
                   </text>
                 </>
               )}

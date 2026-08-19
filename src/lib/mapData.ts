@@ -58,7 +58,7 @@ export const rawLocalsList: Array<{ id: string; nombre: string; zona: string; ca
 
   // PLANTA ALTA (PA) - Anclas & Locales
   { id: 'PA50', nombre: 'Casino Platinum, C.A', zona: 'PLANTA ALTA', cat: 'Entretenimiento VIP', score: 'A1', prov: 'Inter', pago: 210, plan: '600 Mbps Emp.' },
-  { id: 'PA41', nombre: 'Cinex Hiper Jumbo (Salas)', zona: 'PLANTA ALTA', cat: 'Cine / Ocio', score: 'A1', prov: 'Inter', pago: 260, plan: '600 Mbps Emp.' },
+  { id: 'PA41', nombre: 'Cines Unidos Hiper Jumbo (Salas)', zona: 'PLANTA ALTA', cat: 'Cine / Ocio', score: 'A1', prov: 'Inter', pago: 260, plan: '600 Mbps Emp.' },
   { id: 'PA01', nombre: 'SISPROT GLOBAL FIBER (SGF)', zona: 'PLANTA ALTA', cat: 'Oficina SGF', score: 'A1', prov: 'SGF Directo', pago: 0 },
   { id: 'PA03', nombre: 'KP Zona Digital', zona: 'PLANTA ALTA', cat: 'Electrónica', score: 'B', prov: '360NET', pago: 45 },
   { id: 'PA04', nombre: 'Hyper Mercado Admin', zona: 'PLANTA ALTA', cat: 'Oficinas', score: 'A1', prov: 'Inter', pago: 280 },
