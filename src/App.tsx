@@ -635,6 +635,7 @@ type FloorId = 'PB' | 'PA' | 'SOT' | 'EXT'
 const allMallUnits: MallUnit[] = generateAllMallUnits()
 
 function MapView() {
+  const [unitsState, setUnitsState] = useState<MallUnit[]>(() => generateAllMallUnits())
   const [activeFloor, setActiveFloor] = useState<FloorId>('PB')
   const [selectedUnit, setSelectedUnit] = useState<MallUnit | null>(null)
   const [hovUnit, setHovUnit] = useState<MallUnit | null>(null)
@@ -644,14 +645,14 @@ function MapView() {
   const [filterProv, setFilterProv] = useState<string>('all')
 
   const floors: { id: FloorId; label: string; sub: string; badge: string; color: string }[] = [
-    { id:'PB',  label:'Planta Baja',           sub:'PB01 → PB75 · Hipermercado, Bancos & Pasillos', badge:`${allMallUnits.filter(u => u.floor === 'PB').length} Locales`, color:'#3B82F6' },
-    { id:'PA',  label:'Planta Alta',           sub:'PA01 → PA70 · Casino, Cinex & Feria (FC)',     badge:`${allMallUnits.filter(u => u.floor === 'PA').length} Locales`, color:'#8B5CF6' },
-    { id:'SOT', label:'Planta Sótano',         sub:'SOT01 → SOT69 · Gym, Parking & Depósitos',     badge:`${allMallUnits.filter(u => u.floor === 'SOT').length} Locales`, color:'#10B981' },
-    { id:'EXT', label:'Exteriores & Luna Park',sub:'8,452.75 m² · Patio Servicio & Parking',       badge:`${allMallUnits.filter(u => u.floor === 'EXT').length} Locales`, color:'#F59E0B' },
+    { id:'PB',  label:'Planta Baja',           sub:'PB01 → PB75 · Hipermercado, Bancos & Pasillos', badge:`${unitsState.filter(u => u.floor === 'PB').length} Locales`, color:'#3B82F6' },
+    { id:'PA',  label:'Planta Alta',           sub:'PA01 → PA70 · Casino, Cinex & Feria (FC)',     badge:`${unitsState.filter(u => u.floor === 'PA').length} Locales`, color:'#8B5CF6' },
+    { id:'SOT', label:'Planta Sótano',         sub:'SOT01 → SOT69 · Gym, Parking & Depósitos',     badge:`${unitsState.filter(u => u.floor === 'SOT').length} Locales`, color:'#10B981' },
+    { id:'EXT', label:'Exteriores & Luna Park',sub:'8,452.75 m² · Patio Servicio & Parking',       badge:`${unitsState.filter(u => u.floor === 'EXT').length} Locales`, color:'#F59E0B' },
   ]
 
   // Filter units for the active floor
-  const currentUnits = allMallUnits.filter(u => {
+  const currentUnits = unitsState.filter(u => {
     const matchFloor = u.floor === activeFloor
     const matchSearch = u.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || u.id.toLowerCase().includes(searchTerm.toLowerCase()) || u.cat.toLowerCase().includes(searchTerm.toLowerCase()) || u.prov.toLowerCase().includes(searchTerm.toLowerCase())
     const matchScore = filterScore === 'all' || u.score === filterScore
@@ -663,6 +664,13 @@ function MapView() {
   const totalCount = currentUnits.length
   const rentedCount = currentUnits.filter(u => u.estado === 'alquilado').length
   const availableCount = currentUnits.filter(u => u.estado === 'disponible').length
+
+  const handleUpdateUnitField = (field: keyof MallUnit, val: any) => {
+    if (!selectedUnit) return
+    const updated = { ...selectedUnit, [field]: val }
+    setSelectedUnit(updated)
+    setUnitsState(prev => prev.map(u => u.id === selectedUnit.id ? updated : u))
+  }
 
   return (
     <div className="animate-in" style={{ padding: '24px 28px', minHeight: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -795,69 +803,66 @@ function MapView() {
       </div>
 
       {/* Main Interactive Map & Details Area */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 18, flex: 1, minHeight: 480 }}>
-        {/* SVG Blueprint View */}
-        <div className="glass-panel" style={{ borderRadius: 18, padding: 24, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 18, flex: 1, minHeight: 520 }}>
+        {/* SVG Blueprint View with Full Canvas Pan Scroll */}
+        <div className="glass-panel" style={{ borderRadius: 18, padding: 20, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {/* Legend Banner */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 12, height: 12, borderRadius: 3, background: '#10B981', boxShadow: '0 0 8px #10B98160' }} />
-                <span style={{ fontSize: 11, color: '#CBD5E1', fontWeight: 600 }}>Alquilados (Azul Blueprint / Verde)</span>
+                <span style={{ fontSize: 11, color: '#CBD5E1', fontWeight: 600 }}>Alquilados (Verde / Azul)</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 12, height: 12, borderRadius: 3, background: '#F59E0B', boxShadow: '0 0 8px #F59E0B60' }} />
-                <span style={{ fontSize: 11, color: '#CBD5E1', fontWeight: 600 }}>Disponibles (Amarillo Plano)</span>
+                <span style={{ fontSize: 11, color: '#CBD5E1', fontWeight: 600 }}>Disponibles (Amarillo)</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 12, height: 12, borderRadius: 3, background: '#EF4444' }} />
-                <span style={{ fontSize: 11, color: '#CBD5E1', fontWeight: 600 }}>Con Obra / En Legal</span>
+                <span style={{ fontSize: 11, color: '#CBD5E1', fontWeight: 600 }}>Sin Servicio / En Legal</span>
               </div>
             </div>
 
-            <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'JetBrains Mono, monospace' }}>
-              {rentedCount} Ocupados · {availableCount} Libres
+            <div style={{ fontSize: 11, color: '#38BDF8', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>
+              💡 Haz clic en un local para editar sus campos | Scroll / Arrastra para navegar
             </div>
           </div>
 
-          {/* Interactive SVG Rendering */}
-          <div style={{ flex: 1, width: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'auto', minHeight: 460 }}>
-            <svg width="100%" height="100%" viewBox="0 0 520 480" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible', maxHeight: '100%' }}>
+          {/* Interactive Scrollable Canvas 1100 x 850px */}
+          <div style={{ flex: 1, width: '100%', height: '100%', position: 'relative', overflow: 'auto', background: 'rgba(10, 15, 30, 0.6)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)' }}>
+            <svg width="1100" height="850" viewBox="0 0 1100 850" style={{ display: 'block', background: 'radial-gradient(circle at 50% 50%, rgba(15,23,42,0.8), rgba(10,15,30,0.95))' }}>
               <defs>
-                <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <circle cx="10" cy="10" r="0.75" fill="rgba(255,255,255,0.08)" />
+                <pattern id="gridPattern" width="30" height="30" patternUnits="userSpaceOnUse">
+                  <circle cx="15" cy="15" r="1" fill="rgba(0, 163, 255, 0.15)" />
                 </pattern>
               </defs>
 
               {/* Grid Background */}
-              <rect width="520" height="480" fill="url(#gridPattern)" rx="12" />
+              <rect width="1100" height="850" fill="url(#gridPattern)" rx="12" />
 
               {/* Outer Architectural Envelope */}
-              <rect x="20" y="15" width="480" height="450" rx="16" fill="none" stroke="rgba(0, 163, 255, 0.2)" strokeWidth="1.5" strokeDasharray="6 4" />
+              <rect x="25" y="25" width="1050" height="800" rx="20" fill="none" stroke="rgba(0, 163, 255, 0.25)" strokeWidth="2" strokeDasharray="8 6" />
 
               {/* Floor Specific Architectural Labels */}
               {activeFloor === 'PB' && (
                 <>
-                  <text x="260" y="465" textAnchor="middle" style={{ fontSize: 10, fill: '#3B82F6', fontWeight: 700, letterSpacing: '.1em' }}>
-                    NIVEL PLANTA BAJA — ENTRADA PRINCIPAL & HIPERMERCADO (PB57)
+                  <text x="550" y="815" textAnchor="middle" style={{ fontSize: 13, fill: '#3B82F6', fontWeight: 800, letterSpacing: '.15em' }}>
+                    NIVEL PLANTA BAJA — ENTRADA PRINCIPAL, ANCLA HIPERMERCADO (PB57) & PASILLOS
                   </text>
-                  {/* Corredores */}
-                  <rect x="95" y="70" width="10" height="300" fill="rgba(59, 130, 246, 0.08)" rx="4" />
-                  <rect x="425" y="70" width="10" height="300" fill="rgba(59, 130, 246, 0.08)" rx="4" />
                 </>
               )}
 
               {activeFloor === 'PA' && (
                 <>
-                  <text x="260" y="465" textAnchor="middle" style={{ fontSize: 10, fill: '#8B5CF6', fontWeight: 700, letterSpacing: '.1em' }}>
-                    NIVEL PLANTA ALTA — CASINO PLATINUM (PA50), CINEX & FERIA DE COMIDA (FC)
+                  <text x="550" y="815" textAnchor="middle" style={{ fontSize: 13, fill: '#8B5CF6', fontWeight: 800, letterSpacing: '.15em' }}>
+                    NIVEL PLANTA ALTA — CASINO PLATINUM (PA50), CINEX (PA41) & FERIA DE COMIDA (FC)
                   </text>
                 </>
               )}
 
               {activeFloor === 'SOT' && (
                 <>
-                  <text x="260" y="465" textAnchor="middle" style={{ fontSize: 10, fill: '#10B981', fontWeight: 700, letterSpacing: '.1em' }}>
+                  <text x="550" y="815" textAnchor="middle" style={{ fontSize: 13, fill: '#10B981', fontWeight: 800, letterSpacing: '.15em' }}>
                     NIVEL SÓTANO — HYPER GYM (SOT36), ESTACIONAMIENTO & SUBESTACIÓN
                   </text>
                 </>
@@ -865,7 +870,7 @@ function MapView() {
 
               {activeFloor === 'EXT' && (
                 <>
-                  <text x="260" y="465" textAnchor="middle" style={{ fontSize: 10, fill: '#F59E0B', fontWeight: 700, letterSpacing: '.1em' }}>
+                  <text x="550" y="815" textAnchor="middle" style={{ fontSize: 13, fill: '#F59E0B', fontWeight: 800, letterSpacing: '.15em' }}>
                     ÁREA EXTERIOR — LUNA PARK (8,452.75 m²), PATIO CARGA & ACOMETIDA OPTICA
                   </text>
                 </>
@@ -876,7 +881,7 @@ function MapView() {
                 const isSelected = selectedUnit?.id === unit.id
                 const isHovered = hovUnit?.id === unit.id
                 const strokeColor = unit.estado === 'disponible' ? '#F59E0B' : unit.estado === 'obra' ? '#EF4444' : scoreHex[unit.score] || '#3B82F6'
-                const fillColor = unit.estado === 'disponible' ? 'rgba(245, 158, 11, 0.18)' : unit.estado === 'obra' ? 'rgba(239, 68, 68, 0.18)' : `${strokeColor}22`
+                const fillColor = unit.estado === 'disponible' ? 'rgba(245, 158, 11, 0.22)' : unit.estado === 'obra' ? 'rgba(239, 68, 68, 0.22)' : `${strokeColor}28`
 
                 return (
                   <g
@@ -891,12 +896,12 @@ function MapView() {
                       y={unit.y}
                       width={unit.w}
                       height={unit.h}
-                      rx={6}
+                      rx={8}
                       fill={fillColor}
                       stroke={strokeColor}
-                      strokeWidth={isSelected || isHovered ? 2.5 : 1.2}
+                      strokeWidth={isSelected || isHovered ? 3 : 1.5}
                       style={{
-                        filter: isHovered || isSelected ? `drop-shadow(0 0 12px ${strokeColor}99)` : 'none',
+                        filter: isHovered || isSelected ? `drop-shadow(0 0 16px ${strokeColor}BB)` : 'none',
                         transition: 'all 0.15s ease'
                       }}
                     />
@@ -904,12 +909,12 @@ function MapView() {
                     {/* Unit ID Tag */}
                     <text
                       x={unit.x + unit.w / 2}
-                      y={unit.y + (unit.h > 40 ? 13 : unit.h / 2 + 1)}
+                      y={unit.y + (unit.h > 70 ? 22 : unit.h / 2 - 4)}
                       textAnchor="middle"
                       style={{
-                        fontSize: unit.w > 60 ? 9.5 : 7.5,
+                        fontSize: unit.w > 120 ? 14 : 11,
                         fill: strokeColor,
-                        fontWeight: 800,
+                        fontWeight: 900,
                         fontFamily: 'JetBrains Mono, monospace'
                       }}
                     >
@@ -919,16 +924,32 @@ function MapView() {
                     {/* Unit ISP Provider Badge */}
                     <text
                       x={unit.x + unit.w / 2}
-                      y={unit.y + (unit.h > 40 ? 25 : unit.h / 2 + 11)}
+                      y={unit.y + (unit.h > 70 ? 42 : unit.h / 2 + 12)}
                       textAnchor="middle"
                       style={{
-                        fontSize: 7,
-                        fill: unit.prov.includes('Inter') ? '#3B82F6' : unit.prov.includes('Fibex') ? '#10B981' : unit.prov.includes('NetUno') ? '#8B5CF6' : unit.prov.includes('360NET') ? '#F59E0B' : '#94A3B8',
-                        fontWeight: 700
+                        fontSize: unit.w > 100 ? 10 : 8.5,
+                        fill: unit.prov.includes('Inter') ? '#38BDF8' : unit.prov.includes('Fibex') ? '#34D399' : unit.prov.includes('NetUno') ? '#A78BFA' : unit.prov.includes('360NET') ? '#FBBF24' : '#94A3B8',
+                        fontWeight: 800
                       }}
                     >
-                      {unit.prov && unit.prov !== '—' ? (unit.prov.length > 9 ? unit.prov.slice(0, 8) + '…' : unit.prov) : 'Sin ISP'}
+                      {unit.prov && unit.prov !== '—' ? (unit.prov.length > 12 ? unit.prov.slice(0, 10) + '…' : unit.prov) : 'Sin ISP'}
                     </text>
+
+                    {/* Unit Name (for spacious modules) */}
+                    {unit.h >= 65 && unit.w >= 70 && (
+                      <text
+                        x={unit.x + unit.w / 2}
+                        y={unit.y + unit.h - 10}
+                        textAnchor="middle"
+                        style={{
+                          fontSize: 9,
+                          fill: '#CBD5E1',
+                          fontWeight: 600
+                        }}
+                      >
+                        {unit.nombre.length > 15 ? unit.nombre.slice(0, 13) + '…' : unit.nombre}
+                      </text>
+                    )}
                   </g>
                 )
               })}
@@ -949,7 +970,7 @@ function MapView() {
                 pointerEvents: 'none',
                 zIndex: 9999,
                 boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
-                minWidth: 190
+                minWidth: 200
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                   <span style={{ color: cyber, fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>{hovUnit.id}</span>
@@ -969,14 +990,14 @@ function MapView() {
           </div>
         </div>
 
-        {/* Selected Unit Details Panel */}
+        {/* Selected Unit Quick Edit Panel */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {selectedUnit ? (
             <div className="glass-panel animate-in" style={{ borderRadius: 16, padding: 20, flex: 1, display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                 <div>
-                  <span style={{ color: cyber, fontSize: 11, fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>{selectedUnit.id}</span>
-                  <h3 style={{ color: '#F8FAFC', fontSize: 17, fontWeight: 800, marginTop: 2 }}>{selectedUnit.nombre}</h3>
+                  <span style={{ color: cyber, fontSize: 11, fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>LOCAL ID: {selectedUnit.id}</span>
+                  <h3 style={{ color: '#F8FAFC', fontSize: 16, fontWeight: 800, marginTop: 2 }}>Edición Rápida</h3>
                 </div>
                 <button
                   onClick={() => setSelectedUnit(null)}
@@ -1000,29 +1021,90 @@ function MapView() {
                 </span>
               </div>
 
-              {/* Specs List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: 'rgba(15,23,42,0.6)', borderRadius: 12, padding: 12, marginBottom: 16 }}>
-                <InfoLine label="Nivel / Piso" val={floors.find(f => f.id === selectedUnit.floor)?.label || selectedUnit.floor} />
-                <InfoLine label="Categoría / Rubro" val={selectedUnit.cat} />
-                <InfoLine label="Proveedor Actual" val={selectedUnit.prov} />
-                <InfoLine label="Facturación Mensual" val={selectedUnit.pago > 0 ? `$${selectedUnit.pago} USD` : 'N/A'} />
-                {selectedUnit.plan && <InfoLine label="Plan SGF Sugerido" val={selectedUnit.plan} />}
+              {/* Formulario de Edición Rápida en Vivo */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: 'rgba(15,23,42,0.6)', borderRadius: 12, padding: 14, marginBottom: 16 }}>
+                <div>
+                  <label style={{ color: '#94A3B8', fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 4 }}>Nombre Comercial / Empresa</label>
+                  <input
+                    type="text"
+                    value={selectedUnit.nombre}
+                    onChange={e => handleUpdateUnitField('nombre', e.target.value)}
+                    style={{ width: '100%', background: '#0F172A', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: '7px 10px', color: '#F8FAFC', fontSize: 12, outline: 'none' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ color: '#94A3B8', fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 4 }}>Proveedor de Internet (ISP)</label>
+                  <select
+                    value={selectedUnit.prov}
+                    onChange={e => handleUpdateUnitField('prov', e.target.value)}
+                    style={{ width: '100%', background: '#0F172A', border: '1px solid rgba(0, 163, 255, 0.3)', borderRadius: 8, padding: '7px 10px', color: '#38BDF8', fontSize: 12, fontWeight: 700, outline: 'none' }}
+                  >
+                    <option value="Inter">Inter (Fibra / Cable)</option>
+                    <option value="NetUno">NetUno</option>
+                    <option value="Fibex">Fibex Telecom</option>
+                    <option value="360NET">360NET</option>
+                    <option value="SGF Directo">SGF Fibra Directa</option>
+                    <option value="Datos Móviles">Datos Móviles</option>
+                    <option value="Sin servicio">Sin Servicio / Ninguno</option>
+                    <option value="Por Encuestar">Por Encuestar</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ color: '#94A3B8', fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 4 }}>Categoría / Rubro</label>
+                  <input
+                    type="text"
+                    value={selectedUnit.cat}
+                    onChange={e => handleUpdateUnitField('cat', e.target.value)}
+                    style={{ width: '100%', background: '#0F172A', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: '7px 10px', color: '#F8FAFC', fontSize: 12, outline: 'none' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ color: '#94A3B8', fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 4 }}>Facturación Mensual (USD)</label>
+                  <input
+                    type="number"
+                    value={selectedUnit.pago}
+                    onChange={e => handleUpdateUnitField('pago', parseFloat(e.target.value) || 0)}
+                    style={{ width: '100%', background: '#0F172A', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: '7px 10px', color: green, fontWeight: 700, fontSize: 12, outline: 'none' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ color: '#94A3B8', fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 4 }}>Score de Oportunidad</label>
+                  <select
+                    value={selectedUnit.score}
+                    onChange={e => handleUpdateUnitField('score', e.target.value)}
+                    style={{ width: '100%', background: '#0F172A', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: '7px 10px', color: '#F8FAFC', fontSize: 12, outline: 'none' }}
+                  >
+                    <option value="A1">A1 - Prioritario</option>
+                    <option value="A2">A2 - Alto</option>
+                    <option value="B">B - Oportunidad</option>
+                    <option value="C">C - Medio</option>
+                    <option value="D">D - Bajo</option>
+                    <option value="E">E - Vacío / Disponible</option>
+                  </select>
+                </div>
               </div>
 
               <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <button style={{
-                  width: '100%',
-                  padding: '11px',
-                  borderRadius: 10,
-                  border: 'none',
-                  background: `linear-gradient(135deg, ${brand}, ${cyber})`,
-                  color: '#fff',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: `0 4px 16px ${brand}40`
-                }}>
-                  📍 Agendar Censo Presencial
+                <button
+                  onClick={() => alert(`Local ${selectedUnit.id} actualizado correctamente en memoria.`)}
+                  style={{
+                    width: '100%',
+                    padding: '11px',
+                    borderRadius: 10,
+                    border: 'none',
+                    background: `linear-gradient(135deg, ${brand}, ${cyber})`,
+                    color: '#fff',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: `0 4px 16px ${brand}40`
+                  }}
+                >
+                  💾 Guardar Cambios Rápido
                 </button>
               </div>
             </div>
@@ -1030,8 +1112,8 @@ function MapView() {
             <div className="glass-panel" style={{ borderRadius: 16, padding: 20, flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
               <span style={{ fontSize: 32, marginBottom: 10 }}>🗺️</span>
               <p style={{ color: '#F8FAFC', fontSize: 14, fontWeight: 700 }}>Explora el Centro Comercial</p>
-              <p style={{ color: '#64748B', fontSize: 12, marginTop: 4, maxWidth: 220 }}>
-                Haz clic en cualquier local del plano para inspeccionar su ficha comercial y factibilidad técnica.
+              <p style={{ color: '#64748B', fontSize: 12, marginTop: 4, maxWidth: 230 }}>
+                Haz clic en cualquier local del plano panorámico para editar de inmediato su proveedor de internet, nombre, rubro o pago mensual.
               </p>
             </div>
           )}
