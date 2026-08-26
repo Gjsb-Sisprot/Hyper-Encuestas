@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import {
   saveSurveyResponse,
   fetchLeadsFromSupabase,
+  fetchSurveysFromSupabase,
   Lead,
 } from "./lib/supabase"
 
@@ -73,19 +74,35 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
 
   useEffect(() => {
     async function loadLocals() {
-      const leads = await fetchLeadsFromSupabase()
+      const [leads, surveys] = await Promise.all([
+        fetchLeadsFromSupabase(),
+        fetchSurveysFromSupabase()
+      ])
+
       if (leads && leads.length > 0) {
-        setDbLocals(leads)
-        if (leads[0]) {
+        // Identificar los local_ids de encuestas que fueron completadas con éxito
+        const completedLocalIds = new Set(
+          surveys
+            .filter((s) => s.visit_result === "Completada")
+            .map((s) => s.local_id)
+        )
+
+        // Filtrar locales para que desaparezcan de la lista pública si ya fueron encuestados exitosamente
+        const pendingLocals = leads.filter((l) => !completedLocalIds.has(l.id))
+
+        const listToUse = pendingLocals.length > 0 ? pendingLocals : leads
+        setDbLocals(listToUse)
+
+        if (listToUse[0]) {
           setFormData((prev) => ({
             ...prev,
-            localId: leads[0].id,
-            nombreLocal: leads[0].nombre,
-            zona: leads[0].zona,
+            localId: listToUse[0].id,
+            nombreLocal: listToUse[0].nombre,
+            zona: listToUse[0].zona,
             provActual:
-              leads[0].prov !== "Por Encuestar" ? leads[0].prov : "Inter",
-            pagoMensual: leads[0].pago
-              ? String(leads[0].pago)
+              listToUse[0].prov !== "Por Encuestar" ? listToUse[0].prov : "Inter",
+            pagoMensual: listToUse[0].pago
+              ? String(listToUse[0].pago)
               : prev.pagoMensual,
           }))
         }

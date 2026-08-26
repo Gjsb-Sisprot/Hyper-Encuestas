@@ -104,12 +104,36 @@ export async function fetchMapLocalsFromSupabase(): Promise<MapLocal[] | null> {
 
 export async function saveSurveyResponse(survey: SurveyResponse): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error: surveyErr } = await supabase
+    // 1. Verificar si ya existe una encuesta previa registrada para este local_id
+    const { data: existingSurveys } = await supabase
       .from('survey_responses')
-      .insert([survey])
+      .select('id')
+      .eq('local_id', survey.local_id)
+      .limit(1)
+
+    let surveyErr = null
+
+    if (existingSurveys && existingSurveys.length > 0) {
+      // Actualizar el registro existente
+      const existingId = existingSurveys[0].id
+      const { error } = await supabase
+        .from('survey_responses')
+        .update({
+          ...survey,
+          created_at: new Date().toISOString()
+        })
+        .eq('id', existingId)
+      surveyErr = error
+    } else {
+      // Insertar nuevo registro para este local
+      const { error } = await supabase
+        .from('survey_responses')
+        .insert([survey])
+      surveyErr = error
+    }
 
     if (surveyErr) {
-      console.error('Error insertando encuesta:', surveyErr)
+      console.error('Error guardando encuesta:', surveyErr)
       return { success: false, error: surveyErr.message }
     }
 
