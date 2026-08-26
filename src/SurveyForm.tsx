@@ -20,9 +20,15 @@ type VisitStatus = "Completada" | "Encargado Ausente" | "Cerrado" | "Rechazo" | 
 
 interface SurveyFormProps {
   onOpenAdmin?: () => void
+  initialLocalId?: string
+  onCompleteInModal?: () => void
 }
 
-export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
+export default function SurveyForm({
+  onOpenAdmin,
+  initialLocalId,
+  onCompleteInModal,
+}: SurveyFormProps) {
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -76,7 +82,7 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
     async function loadLocals() {
       const [leads, surveys] = await Promise.all([
         fetchLeadsFromSupabase(),
-        fetchSurveysFromSupabase()
+        fetchSurveysFromSupabase(),
       ])
 
       if (leads && leads.length > 0) {
@@ -84,32 +90,38 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
         const completedLocalIds = new Set(
           surveys
             .filter((s) => s.visit_result === "Completada")
-            .map((s) => s.local_id)
+            .map((s) => s.local_id),
         )
 
-        // Filtrar locales para que desaparezcan de la lista pública si ya fueron encuestados exitosamente
-        const pendingLocals = leads.filter((l) => !completedLocalIds.has(l.id))
+        // Si viene un initialLocalId especifico, permitirlo en la lista obligatoriamente
+        const pendingLocals = leads.filter(
+          (l) => !completedLocalIds.has(l.id) || l.id === initialLocalId,
+        )
 
         const listToUse = pendingLocals.length > 0 ? pendingLocals : leads
         setDbLocals(listToUse)
 
-        if (listToUse[0]) {
+        const targetLocal =
+          (initialLocalId && leads.find((l) => l.id === initialLocalId)) ||
+          listToUse[0]
+
+        if (targetLocal) {
           setFormData((prev) => ({
             ...prev,
-            localId: listToUse[0].id,
-            nombreLocal: listToUse[0].nombre,
-            zona: listToUse[0].zona,
+            localId: targetLocal.id,
+            nombreLocal: targetLocal.nombre,
+            zona: targetLocal.zona,
             provActual:
-              listToUse[0].prov !== "Por Encuestar" ? listToUse[0].prov : "Inter",
-            pagoMensual: listToUse[0].pago
-              ? String(listToUse[0].pago)
+              targetLocal.prov !== "Por Encuestar" ? targetLocal.prov : "Inter",
+            pagoMensual: targetLocal.pago
+              ? String(targetLocal.pago)
               : prev.pagoMensual,
           }))
         }
       }
     }
     loadLocals()
-  }, [])
+  }, [initialLocalId])
 
   // Dynamic steps depending on visit result
   const isVisitSuccessful = formData.visitResult === "Completada"
@@ -386,8 +398,12 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
           <div style={{ display: "flex", gap: 12 }}>
             <button
               onClick={() => {
-                setSubmitted(false)
-                setStep(0)
+                if (onCompleteInModal) {
+                  onCompleteInModal()
+                } else {
+                  setSubmitted(false)
+                  setStep(0)
+                }
               }}
               style={{
                 flex: 1,
@@ -401,25 +417,29 @@ export default function SurveyForm({ onOpenAdmin }: SurveyFormProps) {
                 cursor: "pointer",
               }}
             >
-              ➕ Registrar Otro Local
+              {onCompleteInModal
+                ? "✓ Guardar y Volver a Administración"
+                : "➕ Registrar Otro Local"}
             </button>
-            <a
-              href="/"
-              style={{
-                flex: 1,
-                padding: 14,
-                borderRadius: 12,
-                border: "1px solid rgba(255,255,255,0.1)",
-                background: "transparent",
-                color: "#F8FAFC",
-                fontSize: 13,
-                fontWeight: 600,
-                textDecoration: "none",
-                textAlign: "center",
-              }}
-            >
-              📊 Ir al Dashboard SGF
-            </a>
+            {!onCompleteInModal && (
+              <a
+                href="/"
+                style={{
+                  flex: 1,
+                  padding: 14,
+                  borderRadius: 12,
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "transparent",
+                  color: "#F8FAFC",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  textAlign: "center",
+                }}
+              >
+                📊 Ir al Dashboard SGF
+              </a>
+            )}
           </div>
         </div>
       </div>

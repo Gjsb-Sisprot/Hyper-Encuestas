@@ -21,6 +21,7 @@ import {
   SurveyResponse,
 } from "./lib/supabase"
 import { generateAllMallUnits, MallUnit } from "./lib/mapData"
+import SurveyForm from "./SurveyForm"
 
 // ─── TOKENS ─────────────────────────────────────────────────────────────────
 const brand = "#0052FF"
@@ -668,7 +669,7 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
     loadData()
   }, [])
 
-  const navItems: { id: View; icon: string; label: string }[] = [
+  const navItems: { id: View icon: string label: string }[] = [
     { id: "dashboard", icon: "◈", label: "Análisis" },
     { id: "crm", icon: "◉", label: "Prospectos" },
     { id: "map", icon: "⬡", label: "Mapa" },
@@ -1585,7 +1586,7 @@ function CRM({ data }: { data?: typeof leads }) {
     return matchQ && matchT
   })
 
-  const tabs: { id: "all" | "a" | "b" | "c"; label: string; count: number }[] = [
+  const tabs: { id: "all" | "a" | "b" | "c" label: string count: number }[] = [
     { id: "all", label: "Todos", count: leadsData.length },
     {
       id: "a",
@@ -2266,7 +2267,7 @@ function DrawerSec({
     </div>
   )
 }
-function InfoLine({ label, val }: { label: string; val: string }) {
+function InfoLine({ label, val }: { label: string val: string }) {
   return (
     <div
       style={{
@@ -3469,6 +3470,7 @@ function SurveysView({
   const [selectedSurvey, setSelectedSurvey] = useState<SurveyResponse | null>(
     null,
   )
+  const [editingLocalId, setEditingLocalId] = useState<string | null>(null)
 
   const filtered = surveys.filter((s) => {
     const query = q.toLowerCase()
@@ -3859,9 +3861,11 @@ function SurveysView({
                       >
                         Ver Ficha
                       </button>
-                      <a
-                        href="/encuesta"
-                        onClick={(e) => e.stopPropagation()}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setEditingLocalId(s.local_id)
+                        }}
                         style={{
                           background: "rgba(16, 185, 129, 0.15)",
                           border: "1px solid rgba(16, 185, 129, 0.3)",
@@ -3870,13 +3874,13 @@ function SurveysView({
                           borderRadius: 6,
                           fontSize: 11,
                           fontWeight: 700,
-                          textDecoration: "none",
+                          cursor: "pointer",
                           whiteSpace: "nowrap",
                         }}
                         title="Repetir o actualizar encuesta sobre este local"
                       >
                         🔄 Repetir
-                      </a>
+                      </button>
                     </td>
                   </tr>
                 )
@@ -4203,6 +4207,71 @@ function SurveysView({
             >
               Cerrar Ficha
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Repetir Encuesta en la vista Admin */}
+      {editingLocalId && (
+        <div
+          className="modal-overlay animate-in"
+          onClick={() => setEditingLocalId(null)}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(6, 9, 19, 0.85)",
+            backdropFilter: "blur(8px)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+            overflowY: "auto",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: 680,
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              position: "relative",
+              borderRadius: 20,
+            }}
+          >
+            <button
+              onClick={() => setEditingLocalId(null)}
+              style={{
+                position: "absolute",
+                top: 24,
+                right: 24,
+                zIndex: 10,
+                background: "rgba(255, 255, 255, 0.1)",
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+                color: "#F8FAFC",
+                borderRadius: "50%",
+                width: 32,
+                height: 32,
+                cursor: "pointer",
+                fontSize: 14,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              ✕
+            </button>
+            <SurveyForm
+              initialLocalId={editingLocalId}
+              onCompleteInModal={() => {
+                setEditingLocalId(null)
+                onRefresh()
+              }}
+            />
           </div>
         </div>
       )}
