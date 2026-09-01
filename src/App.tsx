@@ -934,13 +934,24 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
             />
           )}
           {view === "form" && (
-            <div style={{ padding: 20 }}>
-              <SurveyForm
-                onCompleteInModal={() => {
-                  loadData()
-                  setView("surveys")
-                }}
-              />
+            <div
+              style={{
+                padding: "24px 20px 40px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "flex-start",
+                minHeight: "100%",
+              }}
+            >
+              <div style={{ maxWidth: 680, width: "100%" }}>
+                <SurveyForm
+                  isEmbedded={true}
+                  onCompleteInModal={() => {
+                    loadData()
+                    setView("surveys")
+                  }}
+                />
+              </div>
             </div>
           )}
         </main>
@@ -4249,39 +4260,62 @@ function SurveysView({
             style={{
               maxWidth: 680,
               width: "100%",
-              maxHeight: "90vh",
+              maxHeight: "92vh",
               overflowY: "auto",
               position: "relative",
-              borderRadius: 20,
+              borderRadius: 24,
+              background: "#0D1526",
+              border: "1px solid rgba(0, 163, 255, 0.25)",
+              boxShadow: "0 25px 60px rgba(0, 0, 0, 0.7)",
+              padding: "24px 20px",
             }}
           >
-            <button
-              onClick={() => setEditingLocalId(null)}
+            <div
               style={{
-                position: "absolute",
-                top: 24,
-                right: 24,
-                zIndex: 10,
-                background: "rgba(255, 255, 255, 0.1)",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
-                color: "#F8FAFC",
-                borderRadius: "50%",
-                width: 32,
-                height: 32,
-                cursor: "pointer",
-                fontSize: 14,
                 display: "flex",
+                justifyContent: "space-between",
                 alignItems: "center",
-                justifyContent: "center",
+                marginBottom: 18,
+                paddingBottom: 12,
+                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
               }}
             >
-              ✕
-            </button>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 20 }}>📋</span>
+                <div>
+                  <h3 style={{ color: "#F8FAFC", fontSize: 16, fontWeight: 800, margin: 0 }}>
+                    Actualizar Encuesta Comercial
+                  </h3>
+                  <p style={{ color: "#64748B", fontSize: 12, margin: 0 }}>
+                    Local ID: <strong style={{ color: cyber }}>{editingLocalId}</strong>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEditingLocalId(null)}
+                style={{
+                  background: "rgba(255, 255, 255, 0.08)",
+                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                  color: "#94A3B8",
+                  borderRadius: "50%",
+                  width: 32,
+                  height: 32,
+                  cursor: "pointer",
+                  fontSize: 14,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                ✕
+              </button>
+            </div>
             <SurveyForm
               initialLocalId={editingLocalId}
+              isEmbedded={true}
               onCompleteInModal={() => {
                 setEditingLocalId(null)
-                onRefresh()
+                loadData()
               }}
             />
           </div>

@@ -22,13 +22,16 @@ interface SurveyFormProps {
   onOpenAdmin?: () => void
   initialLocalId?: string
   onCompleteInModal?: () => void
+  isEmbedded?: boolean
 }
 
 export default function SurveyForm({
   onOpenAdmin,
   initialLocalId,
   onCompleteInModal,
+  isEmbedded,
 }: SurveyFormProps) {
+  const embedded = isEmbedded || !!onCompleteInModal
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -217,28 +220,18 @@ export default function SurveyForm({
   ]
 
   if (submitted) {
-    return (
+    const successCard = (
       <div
+        className="glass-card animate-in"
         style={{
-          minHeight: "100vh",
-          background: "#060913",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 20,
-          fontFamily: "Plus Jakarta Sans, sans-serif",
+          maxWidth: 520,
+          width: "100%",
+          padding: 32,
+          borderRadius: 24,
+          textAlign: "center",
+          margin: "0 auto",
         }}
       >
-        <div
-          className="glass-card animate-in"
-          style={{
-            maxWidth: 520,
-            width: "100%",
-            padding: 40,
-            borderRadius: 24,
-            textAlign: "center",
-          }}
-        >
           <div
             style={{
               width: 64,
@@ -442,107 +435,39 @@ export default function SurveyForm({
             )}
           </div>
         </div>
+    )
+
+    if (embedded) return successCard
+
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#060913",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 20,
+          fontFamily: "Plus Jakarta Sans, sans-serif",
+        }}
+      >
+        {successCard}
       </div>
     )
   }
 
-  return (
+  const mainFormContent = (
     <div
+      className="glass-panel animate-in"
       style={{
-        minHeight: "100vh",
-        background: "#060913",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "20px 16px 40px",
-        fontFamily: "Plus Jakarta Sans, sans-serif",
+        maxWidth: 640,
+        width: "100%",
+        borderRadius: 20,
+        padding: "24px 20px",
+        position: "relative",
+        margin: "0 auto",
       }}
     >
-      {/* Brand Header */}
-      <header
-        style={{
-          maxWidth: 640,
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 20,
-          flexWrap: "wrap",
-          gap: 12,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 12,
-              background: `linear-gradient(135deg, ${brand}, ${cyber})`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: `0 0 20px ${brand}60`,
-              flexShrink: 0,
-            }}
-          >
-            <span style={{ color: "#fff", fontSize: 20, fontWeight: 900 }}>
-              S
-            </span>
-          </div>
-          <div>
-            <h1
-              style={{
-                color: "#F8FAFC",
-                fontSize: 16,
-                fontWeight: 800,
-                letterSpacing: "-.01em",
-              }}
-            >
-              HYPER ENCUESTAS SGF
-            </h1>
-            <p style={{ color: "#64748B", fontSize: 11 }}>
-              Formulario Digital de Campo · Censo C.C. Hiper Jumbo
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={
-            onOpenAdmin
-              ? onOpenAdmin
-              : () => {
-                  window.location.href = "/admin"
-                }
-          }
-          style={{
-            background: "rgba(0, 163, 255, 0.1)",
-            border: "1px solid rgba(0, 163, 255, 0.25)",
-            borderRadius: 10,
-            padding: "8px 14px",
-            color: cyber,
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-          }}
-        >
-          <span>🔐</span> Acceso Admin SGF
-        </button>
-      </header>
-
-      {/* Main Container */}
-      <div
-        className="glass-panel animate-in"
-        style={{
-          maxWidth: 640,
-          width: "100%",
-          borderRadius: 20,
-          padding: "24px 20px",
-          position: "relative",
-        }}
-      >
         {/* Stepper Navigation */}
         <div style={{ marginBottom: 28 }}>
           <div
@@ -1880,6 +1805,99 @@ export default function SurveyForm({
           </button>
         </div>
       </div>
+  )
+
+  if (embedded) {
+    return mainFormContent
+  }
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#060913",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: "20px 16px 40px",
+        fontFamily: "Plus Jakarta Sans, sans-serif",
+      }}
+    >
+      {/* Brand Header */}
+      <header
+        style={{
+          maxWidth: 640,
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 20,
+          flexWrap: "wrap",
+          gap: 12,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 12,
+              background: `linear-gradient(135deg, ${brand}, ${cyber})`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: `0 0 20px ${brand}60`,
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ color: "#fff", fontSize: 20, fontWeight: 900 }}>
+              S
+            </span>
+          </div>
+          <div>
+            <h1
+              style={{
+                color: "#F8FAFC",
+                fontSize: 16,
+                fontWeight: 800,
+                letterSpacing: "-.01em",
+              }}
+            >
+              HYPER ENCUESTAS SGF
+            </h1>
+            <p style={{ color: "#64748B", fontSize: 11 }}>
+              Formulario Digital de Campo · Censo C.C. Hiper Jumbo
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={
+            onOpenAdmin
+              ? onOpenAdmin
+              : () => {
+                  window.location.href = "/admin"
+                }
+          }
+          style={{
+            background: "rgba(0, 163, 255, 0.1)",
+            border: "1px solid rgba(0, 163, 255, 0.25)",
+            borderRadius: 10,
+            padding: "8px 14px",
+            color: cyber,
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          <span>🔐</span> Acceso Admin SGF
+        </button>
+      </header>
+
+      {mainFormContent}
     </div>
   )
 }
