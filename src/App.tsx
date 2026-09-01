@@ -4116,7 +4116,7 @@ function SurveysView({
                 return (
                   <tr
                     key={s.id || i}
-                    onClick={() => setSelectedSurvey(s)}
+                    onClick={() => onSelectSurvey(s)}
                     style={{
                       borderBottom: "1px solid #1F2937",
                       background: "transparent",
