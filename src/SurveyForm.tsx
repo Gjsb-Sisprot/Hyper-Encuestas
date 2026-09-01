@@ -38,9 +38,9 @@ export default function SurveyForm({
 
   // Form State
   const [formData, setFormData] = useState({
-    localId: "PB04",
-    nombreLocal: "Mobile Shop Las Americas",
-    zona: "Planta Baja",
+    localId: initialLocalId || "",
+    nombreLocal: "",
+    zona: "",
     vendedor: "Carlos Ramírez",
     visitResult: "Completada" as VisitStatus,
     motivoNoRealizada: "",
@@ -85,42 +85,29 @@ export default function SurveyForm({
     ])
 
     if (leads && leads.length > 0) {
-      // Identificar los local_ids de encuestas que fueron completadas con éxito
-      const completedLocalIds = new Set(
-        surveys
-          .filter((s) => s.visit_result === "Completada")
-          .map((s) => s.local_id),
+      // Ordenar de forma natural por ID
+      const sortedLeads = [...leads].sort((a, b) =>
+        a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: "base" }),
       )
 
-      // Si viene un initialLocalId especifico, permitirlo en la lista obligatoriamente
-      const pendingLocals = leads.filter(
-        (l) => !completedLocalIds.has(l.id) || l.id === initialLocalId,
-      )
+      setDbLocals(sortedLeads)
 
-      const listToUse = pendingLocals.length > 0 ? pendingLocals : leads
-
-      // Definir el local objetivo prioritariamente:
-      // 1. initialLocalId si fue especificado y existe
-      // 2. Primer local no encuestado (pendingLocals[0])
-      // 3. Primer local de la lista completa (leads[0])
-      const targetLocal =
-        (initialLocalId && leads.find((l) => l.id === initialLocalId)) ||
-        (pendingLocals.length > 0 ? pendingLocals[0] : leads[0])
-
-      setDbLocals(listToUse)
-
-      if (targetLocal) {
-        setFormData((prev) => ({
-          ...prev,
-          localId: targetLocal.id,
-          nombreLocal: targetLocal.nombre,
-          zona: targetLocal.zona,
-          provActual:
-            targetLocal.prov !== "Por Encuestar" ? targetLocal.prov : "Inter",
-          pagoMensual: targetLocal.pago
-            ? String(targetLocal.pago)
-            : prev.pagoMensual,
-        }))
+      // ÚNICAMENTE seleccionar un local por defecto si viene un initialLocalId explicito en props
+      if (initialLocalId) {
+        const targetLocal = sortedLeads.find((l) => l.id === initialLocalId)
+        if (targetLocal) {
+          setFormData((prev) => ({
+            ...prev,
+            localId: targetLocal.id,
+            nombreLocal: targetLocal.nombre,
+            zona: targetLocal.zona,
+            provActual:
+              targetLocal.prov !== "Por Encuestar" ? targetLocal.prov : "Inter",
+            pagoMensual: targetLocal.pago
+              ? String(targetLocal.pago)
+              : prev.pagoMensual,
+          }))
+        }
       }
     }
   }
@@ -409,7 +396,12 @@ export default function SurveyForm({
                 } else {
                   setSubmitted(false)
                   setStep(0)
-                  // Forzar recarga/actualización de lista para seleccionar el siguiente local disponible
+                  setFormData((prev) => ({
+                    ...prev,
+                    localId: "",
+                    nombreLocal: "",
+                    zona: "",
+                  }))
                   loadLocals()
                 }
               }}
@@ -724,13 +716,20 @@ export default function SurveyForm({
                         : formData.pagoMensual,
                     })
                   } else {
-                    setFormData({ ...formData, localId: val })
+                    setFormData({
+                      ...formData,
+                      localId: "",
+                      nombreLocal: "",
+                      zona: "",
+                    })
                   }
                 }}
                 style={{
                   width: "100%",
                   background: "rgba(15, 23, 42, 0.8)",
-                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  border: errors.localId
+                    ? "1px solid #EF4444"
+                    : "1px solid rgba(255, 255, 255, 0.12)",
                   borderRadius: 12,
                   padding: "12px 14px",
                   color: "#F8FAFC",
@@ -739,6 +738,9 @@ export default function SurveyForm({
                   boxSizing: "border-box",
                 }}
               >
+                <option value="" disabled style={{ background: "#0F172A", color: "#94A3B8" }}>
+                  -- Selecciona el Local Comercial --
+                </option>
                 {dbLocals
                   .filter((l) => {
                     const matchPiso =
@@ -753,11 +755,24 @@ export default function SurveyForm({
                     return matchPiso && matchQuery
                   })
                   .map((l) => (
-                    <option key={l.id} value={l.id}>
+                    <option key={l.id} value={l.id} style={{ background: "#0F172A", color: "#F8FAFC" }}>
                       [{l.id}] {l.nombre} — {l.zona} ({l.cat})
                     </option>
                   ))}
               </select>
+              {errors.localId && (
+                <span
+                  style={{
+                    color: "#EF4444",
+                    fontSize: 12,
+                    marginTop: 6,
+                    display: "block",
+                    fontWeight: 600,
+                  }}
+                >
+                  ⚠️ {errors.localId}
+                </span>
+              )}
             </div>
 
             {/* Resultado de la Visita */}
