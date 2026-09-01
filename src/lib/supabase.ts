@@ -72,7 +72,7 @@ export async function fetchLeadsFromSupabase(): Promise<Lead[] | null> {
     const { data, error } = await supabase
       .from('leads')
       .select('*')
-      .order('pts', { ascending: false })
+      .order('id', { ascending: true })
 
     if (error) {
       console.warn('Error al cargar leads desde Supabase, usando respaldo estático:', error.message)

@@ -654,6 +654,8 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
   const [leadsList, setLeadsList] = useState(leads)
   const [surveysList, setSurveysList] = useState<SurveyResponse[]>([])
   const [isSupabaseConnected, setIsSupabaseConnected] = useState(false)
+  const [selectedSurvey, setSelectedSurvey] = useState<SurveyResponse | null>(null)
+  const [editingLocalId, setEditingLocalId] = useState<string | null>(null)
 
   const loadData = async () => {
     const dbLeads = await fetchLeadsFromSupabase()
@@ -931,6 +933,8 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
               surveys={surveysList}
               onRefresh={loadData}
               onNavigateToForm={() => setView("form")}
+              onSelectSurvey={(s) => setSelectedSurvey(s)}
+              onEditLocal={(id) => setEditingLocalId(id)}
             />
           )}
           {view === "form" && (
@@ -956,6 +960,390 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
           )}
         </main>
       </div>
+
+      {/* Modal Detalles Encuesta (Top-level Viewport Overlay) */}
+      {selectedSurvey && (
+        <div
+          className="modal-overlay animate-in"
+          onClick={() => setSelectedSurvey(null)}
+        >
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setSelectedSurvey(null)}
+              style={{
+                position: "absolute",
+                top: 16,
+                right: 16,
+                background: "rgba(255, 255, 255, 0.08)",
+                border: "1px solid rgba(255, 255, 255, 0.12)",
+                color: "#94A3B8",
+                borderRadius: "50%",
+                width: 32,
+                height: 32,
+                cursor: "pointer",
+                fontSize: 14,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              ✕
+            </button>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                marginBottom: 20,
+                paddingRight: 30,
+              }}
+            >
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  background: `linear-gradient(135deg, ${brand}, ${cyber})`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 800,
+                  fontSize: 16,
+                  color: "#fff",
+                  boxShadow: `0 0 20px ${brand}50`,
+                  flexShrink: 0,
+                }}
+              >
+                {(selectedSurvey.local_id || "LC").slice(0, 2)}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: 18,
+                    fontWeight: 800,
+                    color: "#F8FAFC",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {selectedSurvey.nombre_local || selectedSurvey.local_id}
+                </h3>
+                <p
+                  style={{
+                    margin: "2px 0 0",
+                    color: cyber,
+                    fontSize: 12,
+                    fontWeight: 600,
+                  }}
+                >
+                  Local: <code>{selectedSurvey.local_id}</code> ·{" "}
+                  {selectedSurvey.zona || "Planta Baja"}
+                </p>
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: "#111827",
+                borderRadius: 16,
+                padding: 18,
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+                marginBottom: 20,
+                border: "1px solid #1F2937",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  fontSize: 13,
+                }}
+              >
+                <span style={{ color: "#64748B", fontWeight: 500 }}>
+                  Estatus Visita
+                </span>
+                <span
+                  style={{
+                    background:
+                      selectedSurvey.visit_result === "Completada"
+                        ? "rgba(16, 185, 129, 0.15)"
+                        : "rgba(245, 158, 11, 0.15)",
+                    color:
+                      selectedSurvey.visit_result === "Completada"
+                        ? green
+                        : amber,
+                    border: `1px solid ${
+                      selectedSurvey.visit_result === "Completada"
+                        ? green
+                        : amber
+                    }40`,
+                    padding: "3px 12px",
+                    borderRadius: 99,
+                    fontSize: 11,
+                    fontWeight: 700,
+                  }}
+                >
+                  {selectedSurvey.visit_result}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                  borderTop: "1px solid #1A2438",
+                  paddingTop: 8,
+                }}
+              >
+                <span style={{ color: "#64748B" }}>Proveedor Actual:</span>
+                <strong style={{ color: "#F1F5F9" }}>
+                  {selectedSurvey.prov_actual || "Sin proveedor"}
+                </strong>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                  borderTop: "1px solid #1A2438",
+                  paddingTop: 8,
+                }}
+              >
+                <span style={{ color: "#64748B" }}>Redes Sociales:</span>
+                <strong style={{ color: cyber }}>
+                  {selectedSurvey.redes_sociales || "No registrado"}
+                </strong>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                  borderTop: "1px solid #1A2438",
+                  paddingTop: 8,
+                }}
+              >
+                <span style={{ color: "#64748B" }}>
+                  Sistema de Facturación / ERP:
+                </span>
+                <strong style={{ color: "#F8FAFC" }}>
+                  {selectedSurvey.sistema_facturacion || "No registrado"}
+                </strong>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                  borderTop: "1px solid #1A2438",
+                  paddingTop: 8,
+                }}
+              >
+                <span style={{ color: "#64748B" }}>¿Pagos Automatizados?:</span>
+                <strong style={{ color: "#CBD5E1" }}>
+                  {selectedSurvey.pagos_automatizados || "No registrado"}
+                </strong>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                  borderTop: "1px solid #1A2438",
+                  paddingTop: 8,
+                }}
+              >
+                <span style={{ color: "#64748B" }}>
+                  Interés en Automatización:
+                </span>
+                <strong
+                  style={{
+                    color: selectedSurvey.interes_automatizar?.includes("Sí")
+                      ? green
+                      : amber,
+                  }}
+                >
+                  {selectedSurvey.interes_automatizar || "No registrado"}
+                </strong>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                  borderTop: "1px solid #1A2438",
+                  paddingTop: 8,
+                }}
+              >
+                <span style={{ color: "#64748B" }}>Contacto / Decisor:</span>
+                <strong style={{ color: "#F8FAFC" }}>
+                  {selectedSurvey.contacto_nombre || "No registrado"}{" "}
+                  {selectedSurvey.contacto_tel
+                    ? `(${selectedSurvey.contacto_tel})`
+                    : ""}
+                </strong>
+              </div>
+
+              {selectedSurvey.observaciones_visita && (
+                <div style={{ borderTop: "1px solid #1A2438", paddingTop: 8 }}>
+                  <span
+                    style={{
+                      color: "#64748B",
+                      fontSize: 11,
+                      display: "block",
+                      marginBottom: 4,
+                    }}
+                  >
+                    Observaciones de Visita:
+                  </span>
+                  <p
+                    style={{
+                      color: "#94A3B8",
+                      fontSize: 12,
+                      margin: 0,
+                      fontStyle: "italic",
+                    }}
+                  >
+                    "{selectedSurvey.observaciones_visita}"
+                  </p>
+                </div>
+              )}
+
+              {selectedSurvey.fallas && selectedSurvey.fallas.length > 0 && (
+                <div style={{ borderTop: "1px solid #1A2438", paddingTop: 10 }}>
+                  <span
+                    style={{
+                      color: "#64748B",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      display: "block",
+                      marginBottom: 6,
+                      textTransform: "uppercase",
+                      letterSpacing: ".05em",
+                    }}
+                  >
+                    Fallas Reportadas del ISP actual
+                  </span>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {selectedSurvey.fallas.map((f, idx) => (
+                      <span
+                        key={idx}
+                        style={{
+                          background: "rgba(239, 68, 68, 0.12)",
+                          border: `1px solid ${red}30`,
+                          color: "#FCA5A5",
+                          padding: "4px 10px",
+                          borderRadius: 8,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        ⚠️ {f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setSelectedSurvey(null)}
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: 12,
+                border: "none",
+                background: `linear-gradient(135deg, ${brand}, ${cyber})`,
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+                boxShadow: `0 4px 16px ${brand}40`,
+              }}
+            >
+              Cerrar Ficha
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Repetir Encuesta (Top-level Viewport Overlay) */}
+      {editingLocalId && (
+        <div
+          className="modal-overlay animate-in"
+          onClick={() => setEditingLocalId(null)}
+        >
+          <div
+            className="modal-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 680 }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 18,
+                paddingBottom: 12,
+                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 20 }}>📋</span>
+                <div>
+                  <h3 style={{ color: "#F8FAFC", fontSize: 16, fontWeight: 800, margin: 0 }}>
+                    Actualizar Encuesta Comercial
+                  </h3>
+                  <p style={{ color: "#64748B", fontSize: 12, margin: 0 }}>
+                    Local ID: <strong style={{ color: cyber }}>{editingLocalId}</strong>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEditingLocalId(null)}
+                style={{
+                  background: "rgba(255, 255, 255, 0.08)",
+                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                  color: "#94A3B8",
+                  borderRadius: "50%",
+                  width: 32,
+                  height: 32,
+                  cursor: "pointer",
+                  fontSize: 14,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <SurveyForm
+              initialLocalId={editingLocalId}
+              isEmbedded={true}
+              onCompleteInModal={() => {
+                setEditingLocalId(null)
+                loadData()
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -3485,16 +3873,16 @@ function SurveysView({
   surveys,
   onRefresh,
   onNavigateToForm,
+  onSelectSurvey,
+  onEditLocal,
 }: {
   surveys: SurveyResponse[]
   onRefresh: () => void
   onNavigateToForm?: () => void
+  onSelectSurvey: (s: SurveyResponse) => void
+  onEditLocal: (localId: string) => void
 }) {
   const [q, setQ] = useState("")
-  const [selectedSurvey, setSelectedSurvey] = useState<SurveyResponse | null>(
-    null,
-  )
-  const [editingLocalId, setEditingLocalId] = useState<string | null>(null)
 
   const filtered = surveys.filter((s) => {
     const query = q.toLowerCase()
@@ -3869,7 +4257,7 @@ function SurveysView({
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          setSelectedSurvey(s)
+                          onSelectSurvey(s)
                         }}
                         style={{
                           background: "rgba(0, 163, 255, 0.12)",
@@ -3887,7 +4275,7 @@ function SurveysView({
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          setEditingLocalId(s.local_id)
+                          onEditLocal(s.local_id)
                         }}
                         style={{
                           background: "rgba(16, 185, 129, 0.15)",
@@ -3910,415 +4298,6 @@ function SurveysView({
               })}
             </tbody>
           </table>
-        </div>
-      )}
-
-      {/* Modal Detalles Encuesta */}
-      {selectedSurvey && (
-        <div
-          className="modal-overlay animate-in"
-          onClick={() => setSelectedSurvey(null)}
-        >
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setSelectedSurvey(null)}
-              style={{
-                position: "absolute",
-                top: 16,
-                right: 16,
-                background: "rgba(255, 255, 255, 0.08)",
-                border: "1px solid rgba(255, 255, 255, 0.12)",
-                color: "#94A3B8",
-                borderRadius: "50%",
-                width: 32,
-                height: 32,
-                cursor: "pointer",
-                fontSize: 14,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              ✕
-            </button>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 14,
-                marginBottom: 20,
-                paddingRight: 30,
-              }}
-            >
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 14,
-                  background: `linear-gradient(135deg, ${brand}, ${cyber})`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: 800,
-                  fontSize: 16,
-                  color: "#fff",
-                  boxShadow: `0 0 20px ${brand}50`,
-                  flexShrink: 0,
-                }}
-              >
-                {(selectedSurvey.local_id || "LC").slice(0, 2)}
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <h3
-                  style={{
-                    margin: 0,
-                    fontSize: 18,
-                    fontWeight: 800,
-                    color: "#F8FAFC",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {selectedSurvey.nombre_local || selectedSurvey.local_id}
-                </h3>
-                <p
-                  style={{
-                    margin: "2px 0 0",
-                    color: cyber,
-                    fontSize: 12,
-                    fontWeight: 600,
-                  }}
-                >
-                  Local: <code>{selectedSurvey.local_id}</code> ·{" "}
-                  {selectedSurvey.zona || "Planta Baja"}
-                </p>
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: "#111827",
-                borderRadius: 16,
-                padding: 18,
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-                marginBottom: 20,
-                border: "1px solid #1F2937",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  fontSize: 13,
-                }}
-              >
-                <span style={{ color: "#64748B", fontWeight: 500 }}>
-                  Estatus Visita
-                </span>
-                <span
-                  style={{
-                    background:
-                      selectedSurvey.visit_result === "Completada"
-                        ? "rgba(16, 185, 129, 0.15)"
-                        : "rgba(245, 158, 11, 0.15)",
-                    color:
-                      selectedSurvey.visit_result === "Completada"
-                        ? green
-                        : amber,
-                    border: `1px solid ${
-                      selectedSurvey.visit_result === "Completada"
-                        ? green
-                        : amber
-                    }40`,
-                    padding: "3px 12px",
-                    borderRadius: 99,
-                    fontSize: 11,
-                    fontWeight: 700,
-                  }}
-                >
-                  {selectedSurvey.visit_result}
-                </span>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                  borderTop: "1px solid #1A2438",
-                  paddingTop: 8,
-                }}
-              >
-                <span style={{ color: "#64748B" }}>Proveedor Actual:</span>
-                <strong style={{ color: "#F1F5F9" }}>
-                  {selectedSurvey.prov_actual || "Sin proveedor"}
-                </strong>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                  borderTop: "1px solid #1A2438",
-                  paddingTop: 8,
-                }}
-              >
-                <span style={{ color: "#64748B" }}>Redes Sociales:</span>
-                <strong style={{ color: cyber }}>
-                  {selectedSurvey.redes_sociales || "No registrado"}
-                </strong>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                  borderTop: "1px solid #1A2438",
-                  paddingTop: 8,
-                }}
-              >
-                <span style={{ color: "#64748B" }}>
-                  Sistema de Facturación / ERP:
-                </span>
-                <strong style={{ color: "#F8FAFC" }}>
-                  {selectedSurvey.sistema_facturacion || "No registrado"}
-                </strong>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                  borderTop: "1px solid #1A2438",
-                  paddingTop: 8,
-                }}
-              >
-                <span style={{ color: "#64748B" }}>¿Pagos Automatizados?:</span>
-                <strong style={{ color: "#CBD5E1" }}>
-                  {selectedSurvey.pagos_automatizados || "No registrado"}
-                </strong>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                  borderTop: "1px solid #1A2438",
-                  paddingTop: 8,
-                }}
-              >
-                <span style={{ color: "#64748B" }}>
-                  Interés en Automatización:
-                </span>
-                <strong
-                  style={{
-                    color: selectedSurvey.interes_automatizar?.includes("Sí")
-                      ? green
-                      : amber,
-                  }}
-                >
-                  {selectedSurvey.interes_automatizar || "No registrado"}
-                </strong>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                  borderTop: "1px solid #1A2438",
-                  paddingTop: 8,
-                }}
-              >
-                <span style={{ color: "#64748B" }}>Contacto / Decisor:</span>
-                <strong style={{ color: "#F8FAFC" }}>
-                  {selectedSurvey.contacto_nombre || "No registrado"}{" "}
-                  {selectedSurvey.contacto_tel
-                    ? `(${selectedSurvey.contacto_tel})`
-                    : ""}
-                </strong>
-              </div>
-
-              {selectedSurvey.observaciones_visita && (
-                <div style={{ borderTop: "1px solid #1A2438", paddingTop: 8 }}>
-                  <span
-                    style={{
-                      color: "#64748B",
-                      fontSize: 11,
-                      display: "block",
-                      marginBottom: 4,
-                    }}
-                  >
-                    Observaciones de Visita:
-                  </span>
-                  <p
-                    style={{
-                      color: "#94A3B8",
-                      fontSize: 12,
-                      margin: 0,
-                      fontStyle: "italic",
-                    }}
-                  >
-                    "{selectedSurvey.observaciones_visita}"
-                  </p>
-                </div>
-              )}
-
-              {selectedSurvey.fallas && selectedSurvey.fallas.length > 0 && (
-                <div style={{ borderTop: "1px solid #1A2438", paddingTop: 10 }}>
-                  <span
-                    style={{
-                      color: "#64748B",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      display: "block",
-                      marginBottom: 6,
-                      textTransform: "uppercase",
-                      letterSpacing: ".05em",
-                    }}
-                  >
-                    Fallas Reportadas del ISP actual
-                  </span>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {selectedSurvey.fallas.map((f, idx) => (
-                      <span
-                        key={idx}
-                        style={{
-                          background: "rgba(239, 68, 68, 0.12)",
-                          border: `1px solid ${red}30`,
-                          color: "#FCA5A5",
-                          padding: "4px 10px",
-                          borderRadius: 8,
-                          fontSize: 11,
-                          fontWeight: 600,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                        }}
-                      >
-                        ⚠️ {f}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={() => setSelectedSurvey(null)}
-              style={{
-                width: "100%",
-                padding: "12px",
-                borderRadius: 12,
-                border: "none",
-                background: `linear-gradient(135deg, ${brand}, ${cyber})`,
-                color: "#fff",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow: `0 4px 16px ${brand}40`,
-              }}
-            >
-              Cerrar Ficha
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Modal para Repetir Encuesta en la vista Admin */}
-      {editingLocalId && (
-        <div
-          className="modal-overlay animate-in"
-          onClick={() => setEditingLocalId(null)}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(6, 9, 19, 0.85)",
-            backdropFilter: "blur(8px)",
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 20,
-            overflowY: "auto",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              maxWidth: 680,
-              width: "100%",
-              maxHeight: "92vh",
-              overflowY: "auto",
-              position: "relative",
-              borderRadius: 24,
-              background: "#0D1526",
-              border: "1px solid rgba(0, 163, 255, 0.25)",
-              boxShadow: "0 25px 60px rgba(0, 0, 0, 0.7)",
-              padding: "24px 20px",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 18,
-                paddingBottom: 12,
-                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 20 }}>📋</span>
-                <div>
-                  <h3 style={{ color: "#F8FAFC", fontSize: 16, fontWeight: 800, margin: 0 }}>
-                    Actualizar Encuesta Comercial
-                  </h3>
-                  <p style={{ color: "#64748B", fontSize: 12, margin: 0 }}>
-                    Local ID: <strong style={{ color: cyber }}>{editingLocalId}</strong>
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setEditingLocalId(null)}
-                style={{
-                  background: "rgba(255, 255, 255, 0.08)",
-                  border: "1px solid rgba(255, 255, 255, 0.15)",
-                  color: "#94A3B8",
-                  borderRadius: "50%",
-                  width: 32,
-                  height: 32,
-                  cursor: "pointer",
-                  fontSize: 14,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                ✕
-              </button>
-            </div>
-            <SurveyForm
-              initialLocalId={editingLocalId}
-              isEmbedded={true}
-              onCompleteInModal={() => {
-                setEditingLocalId(null)
-                onRefresh()
-              }}
-            />
-          </div>
         </div>
       )}
     </div>
