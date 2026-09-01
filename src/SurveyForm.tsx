@@ -78,48 +78,54 @@ export default function SurveyForm({
     canal: "WhatsApp",
   })
 
-  useEffect(() => {
-    async function loadLocals() {
-      const [leads, surveys] = await Promise.all([
-        fetchLeadsFromSupabase(),
-        fetchSurveysFromSupabase(),
-      ])
+  const loadLocals = async () => {
+    const [leads, surveys] = await Promise.all([
+      fetchLeadsFromSupabase(),
+      fetchSurveysFromSupabase(),
+    ])
 
-      if (leads && leads.length > 0) {
-        // Identificar los local_ids de encuestas que fueron completadas con éxito
-        const completedLocalIds = new Set(
-          surveys
-            .filter((s) => s.visit_result === "Completada")
-            .map((s) => s.local_id),
-        )
+    if (leads && leads.length > 0) {
+      // Identificar los local_ids de encuestas que fueron completadas con éxito
+      const completedLocalIds = new Set(
+        surveys
+          .filter((s) => s.visit_result === "Completada")
+          .map((s) => s.local_id),
+      )
 
-        // Si viene un initialLocalId especifico, permitirlo en la lista obligatoriamente
-        const pendingLocals = leads.filter(
-          (l) => !completedLocalIds.has(l.id) || l.id === initialLocalId,
-        )
+      // Si viene un initialLocalId especifico, permitirlo en la lista obligatoriamente
+      const pendingLocals = leads.filter(
+        (l) => !completedLocalIds.has(l.id) || l.id === initialLocalId,
+      )
 
-        const listToUse = pendingLocals.length > 0 ? pendingLocals : leads
-        setDbLocals(listToUse)
+      const listToUse = pendingLocals.length > 0 ? pendingLocals : leads
 
-        const targetLocal =
-          (initialLocalId && leads.find((l) => l.id === initialLocalId)) ||
-          listToUse[0]
+      // Definir el local objetivo prioritariamente:
+      // 1. initialLocalId si fue especificado y existe
+      // 2. Primer local no encuestado (pendingLocals[0])
+      // 3. Primer local de la lista completa (leads[0])
+      const targetLocal =
+        (initialLocalId && leads.find((l) => l.id === initialLocalId)) ||
+        (pendingLocals.length > 0 ? pendingLocals[0] : leads[0])
 
-        if (targetLocal) {
-          setFormData((prev) => ({
-            ...prev,
-            localId: targetLocal.id,
-            nombreLocal: targetLocal.nombre,
-            zona: targetLocal.zona,
-            provActual:
-              targetLocal.prov !== "Por Encuestar" ? targetLocal.prov : "Inter",
-            pagoMensual: targetLocal.pago
-              ? String(targetLocal.pago)
-              : prev.pagoMensual,
-          }))
-        }
+      setDbLocals(listToUse)
+
+      if (targetLocal) {
+        setFormData((prev) => ({
+          ...prev,
+          localId: targetLocal.id,
+          nombreLocal: targetLocal.nombre,
+          zona: targetLocal.zona,
+          provActual:
+            targetLocal.prov !== "Por Encuestar" ? targetLocal.prov : "Inter",
+          pagoMensual: targetLocal.pago
+            ? String(targetLocal.pago)
+            : prev.pagoMensual,
+        }))
       }
     }
+  }
+
+  useEffect(() => {
     loadLocals()
   }, [initialLocalId])
 
@@ -403,6 +409,8 @@ export default function SurveyForm({
                 } else {
                   setSubmitted(false)
                   setStep(0)
+                  // Forzar recarga/actualización de lista para seleccionar el siguiente local disponible
+                  loadLocals()
                 }
               }}
               style={{

@@ -93,7 +93,7 @@ const feasTag = (status: string) => {
   )
 }
 
-type View = "dashboard" | "crm" | "map" | "surveys"
+type View = "dashboard" | "crm" | "map" | "surveys" | "form"
 
 // ─── CRM DATA — Real C.C. Hiper Jumbo businesses from occupancy report 06-08-2026
 const leads = [
@@ -669,11 +669,12 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
     loadData()
   }, [])
 
-  const navItems: { id: View icon: string label: string }[] = [
+  const navItems: { id: View; icon: string; label: string }[] = [
     { id: "dashboard", icon: "◈", label: "Análisis" },
     { id: "crm", icon: "◉", label: "Prospectos" },
     { id: "map", icon: "⬡", label: "Mapa" },
     { id: "surveys", icon: "📋", label: "Respuestas" },
+    { id: "form", icon: "📝", label: "Encuesta" },
   ]
 
   return (
@@ -850,13 +851,7 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
           </div>
 
           <button
-            onClick={
-              onOpenSurvey
-                ? onOpenSurvey
-                : () => {
-                    window.location.href = "/encuesta"
-                  }
-            }
+            onClick={() => setView("form")}
             style={{
               background: `linear-gradient(135deg, ${brand}, ${cyber})`,
               color: "#fff",
@@ -873,7 +868,7 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
               whiteSpace: "nowrap",
             }}
           >
-            <span>📝</span> Encuesta Pública
+            <span>📝</span> Nueva Encuesta
           </button>
 
           {userEmail && (
@@ -926,12 +921,27 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
             <Dashboard
               surveys={surveysList}
               totalLocals={leadsList.length || 326}
+              onNavigateToForm={() => setView("form")}
             />
           )}
           {view === "crm" && <CRM data={leadsList} />}
           {view === "map" && <MapView />}
           {view === "surveys" && (
-            <SurveysView surveys={surveysList} onRefresh={loadData} />
+            <SurveysView
+              surveys={surveysList}
+              onRefresh={loadData}
+              onNavigateToForm={() => setView("form")}
+            />
+          )}
+          {view === "form" && (
+            <div style={{ padding: 20 }}>
+              <SurveyForm
+                onCompleteInModal={() => {
+                  loadData()
+                  setView("surveys")
+                }}
+              />
+            </div>
           )}
         </main>
       </div>
@@ -943,9 +953,11 @@ export default function App({ userEmail, onLogout, onOpenSurvey }: AppProps) {
 function Dashboard({
   surveys,
   totalLocals,
+  onNavigateToForm,
 }: {
   surveys: SurveyResponse[]
   totalLocals: number
+  onNavigateToForm?: () => void
 }) {
   const completed = surveys.filter((s) => s.visit_result === "Completada")
   const countEncuestados = surveys.length
@@ -1144,23 +1156,22 @@ function Dashboard({
               </p>
             </div>
           </div>
-          <a
-            href="/encuesta"
-            target="_blank"
-            rel="noreferrer"
+          <button
+            onClick={() => onNavigateToForm && onNavigateToForm()}
             style={{
               background: `linear-gradient(135deg, ${brand}, ${cyber})`,
               color: "#fff",
+              border: "none",
               padding: "8px 14px",
               borderRadius: 10,
               fontSize: 12,
               fontWeight: 700,
-              textDecoration: "none",
+              cursor: "pointer",
               whiteSpace: "nowrap",
             }}
           >
-            📝 Probar Encuesta
-          </a>
+            📝 Llenar Encuesta
+          </button>
         </div>
       )}
 
@@ -1586,7 +1597,7 @@ function CRM({ data }: { data?: typeof leads }) {
     return matchQ && matchT
   })
 
-  const tabs: { id: "all" | "a" | "b" | "c" label: string count: number }[] = [
+  const tabs: { id: "all" | "a" | "b" | "c"; label: string; count: number }[] = [
     { id: "all", label: "Todos", count: leadsData.length },
     {
       id: "a",
@@ -2267,7 +2278,7 @@ function DrawerSec({
     </div>
   )
 }
-function InfoLine({ label, val }: { label: string val: string }) {
+function InfoLine({ label, val }: { label: string; val: string }) {
   return (
     <div
       style={{
@@ -3462,9 +3473,11 @@ function ProgressItem({
 function SurveysView({
   surveys,
   onRefresh,
+  onNavigateToForm,
 }: {
   surveys: SurveyResponse[]
   onRefresh: () => void
+  onNavigateToForm?: () => void
 }) {
   const [q, setQ] = useState("")
   const [selectedSurvey, setSelectedSurvey] = useState<SurveyResponse | null>(
@@ -3623,25 +3636,24 @@ function SurveysView({
             inmediatamente en la tabla <code>survey_responses</code> y
             aparecerán listadas aquí en tiempo real.
           </p>
-          <a
-            href="/encuesta"
-            target="_blank"
-            rel="noreferrer"
+          <button
+            onClick={() => onNavigateToForm && onNavigateToForm()}
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
               background: `linear-gradient(135deg, ${brand}, ${cyber})`,
               color: "#fff",
+              border: "none",
               padding: "10px 20px",
               borderRadius: 12,
               fontSize: 13,
               fontWeight: 700,
-              textDecoration: "none",
+              cursor: "pointer",
             }}
           >
-            📝 Llenar Formulario de Prueba
-          </a>
+            📝 Llenar Nueva Encuesta
+          </button>
         </div>
       ) : (
         <div
