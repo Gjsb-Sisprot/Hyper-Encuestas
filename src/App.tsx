@@ -4315,7 +4315,7 @@ function SurveysView({
               isEmbedded={true}
               onCompleteInModal={() => {
                 setEditingLocalId(null)
-                loadData()
+                onRefresh()
               }}
             />
           </div>
